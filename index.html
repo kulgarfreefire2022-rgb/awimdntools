@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWIMEDAN CPM - Platform Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0a; color: #e5e7eb; }
+        .gradient-text { background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card { background: rgba(30, 27, 75, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .btn-primary { background: linear-gradient(135deg, #a855f7, #3b82f6); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3); }
+        .btn-secondary { border: 2px solid #a855f7; color: #a855f7; padding: 10px 20px; border-radius: 8px; font-weight: bold; transition: all 0.3s; }
+        .btn-secondary:hover { background: rgba(168, 85, 247, 0.1); }
+        .hero-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://espostory.my.id/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #a855f7;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        button.custom-btn:hover{
+  transform: translateY(-5px) scale(1.05);
+  box-shadow:0 0 15px #FF6600,0 0 30px #0066FF,0 5px 15px rgba(0,0,0,0.3);
+}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:20px;}
+.product-card{
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:10px;padding:8px;text-align:center;
+  transition:0.3s, transform 0.3s, box-shadow 0.3s;
+  position:relative;
+  overflow:hidden;
+}
+.product-card img{
+  width:100%;
+  border-radius:6px;
+  margin-bottom:5px;
+  transition: transform 0.3s ease;
+}
+.product-card:hover{
+  transform: translateY(-10px) scale(1.05);
+  box-shadow:0 15px 25px rgba(255,102,0,0.4),0 0 20px #FF6600,0 0 30px #0066FF;
+}
+.product-card:hover img{transform: scale(1.1);}
+.product-card h2{margin:4px 0;font-size:0.9rem;color:#FF6600;}
+.product-card p{font-size:0.75rem;color:#fff;}
+.product-card .price{font-size:0.8rem;margin-bottom:5px;color:#FF6600;}
+.disclaimer{
+  margin-top:30px;padding:15px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:12px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-black text-white" x-data="app()">
+    <!-- Loading Screen -->
+    <div x-show="loading" class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="relative w-20 h-20 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                <div class="absolute inset-0 border-4 border-blue-600 border-b-transparent rounded-full animate-spin" style="animation-delay: 0.15s;"></div>
+            </div>
+            <p class="text-gray-400 orbitron">LOADING AWIMEDANTOOLS</p>
+            <div class="loading-bar w-48 mx-auto mt-4 rounded-full"></div>
+        </div>
+    </div>
+    
+    <!-- Background Effects -->
+    <div class="fixed inset-0 cyber-grid opacity-20 pointer-events-none"></div>
+    <div class="fixed inset-0 bg-gradient-to-br from-purple-900/10 via-transparent to-blue-900/10 pointer-events-none"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-b border-purple-500/20 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a @click.prevent="currentPage = 'home'" href="#" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold gradient-text">AWIMEDAN</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a @click.prevent="currentPage = 'home'" href="#" :class="currentPage === 'home' ? 'text-purple-400' : 'text-gray-400'" class="font-medium transition-colors">Beranda</a>
+                    <a @click.prevent="currentPage = 'store'" href="#" :class="currentPage === 'store' ? 'text-purple-400' : 'text-gray-400'" class="font-medium transition-colors">Store</a>
+                    <a @click.prevent="currentPage = 'tools'" href="#" :class="currentPage === 'tools' ? 'text-purple-400' : 'text-gray-400'" class="font-medium transition-colors">Tools</a>
+                    <template x-if="currentUser">
+                        <div class="relative" x-data="{ userMenuOpen: false }">
+                            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 text-gray-300 hover:text-purple-400">
+                                <img :src="currentUser.picture" class="w-8 h-8 rounded-full border-2 border-purple-500" :alt="currentUser.name">
+                                <span class="font-medium text-sm" x-text="currentUser.name"></span>
+                            </button>
+                            <div x-show="userMenuOpen" @click.away="userMenuOpen = false" x-transition class="absolute right-0 mt-2 w-48 card rounded-lg py-2 z-50">
+                                <a @click.prevent="currentPage = 'profile'; userMenuOpen = false" href="#" class="block px-4 py-2 text-gray-300 hover:bg-purple-600/20">Profil</a>
+                                <a @click.prevent="logout(); userMenuOpen = false" href="#" class="block px-4 py-2 text-gray-300 hover:bg-purple-600/20">Keluar</a>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="!currentUser">
+                        <button @click="currentPage = 'login'" class="btn-primary text-sm">Masuk</button>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16 min-h-screen relative z-10">
+        <!-- Home Page -->
+        <div x-show="currentPage === 'home'" class="fade-in">
+            <section class="min-h-screen flex items-center justify-center relative overflow-hidden">
+                <div class="hero-banner"></div>
+                <div class="container mx-auto px-4 relative z-10">
+                    <div class="text-center">
+                        <h1 class="text-5xl font-bold mb-6">
+                            <span class="gradient-text">AWIMEDAN</span><br>
+                            <span class="text-3xl text-gray-300">CPM PREMIUM</span>
+                        </h1>
+                        <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+                            Unlock the ultimate CPM experience. Get KING rank, max stats, and exclusive tools that dominate the game.
+                        </p>
+                        <div class="flex justify-center gap-4">
+                            <button @click="currentPage = 'store'" class="btn-primary">
+                                <i class="fas fa-shopping-cart mr-2"></i>BELI SEKARANG
+                            </button>
+                            <button @click="currentPage = 'tools'" class="btn-secondary">
+                                <i class="fas fa-gamepad mr-2"></i>LIHAT TOOLS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cara Kerja Section -->
+            <section class="py-20">
+                <div class="container mx-auto px-4">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold gradient-text mb-4">CARA KERJA</h2>
+                        <p class="text-lg text-gray-400">Tiga langkah mudah untuk mendominasi game</p>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-white">1</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Beli Produk</h3>
+                            <p class="text-gray-400">Pilih paket premium yang sesuai kebutuhan Anda di Store kami.</p>
+                        </div>
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-white">2</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Gunakan Tools</h3>
+                            <p class="text-gray-400">Login ke dashboard dan gunakan tools inject untuk meningkatkan akun Anda.</p>
+                        </div>
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-2xl font-bold text-white">3</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2">Dominasi Game</h3>
+                            <p class="text-gray-400">Nikmati rank KING, mobil tak terbatas, dan statistik maksimal.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- Payment Methods Section -->
+            <section class="py-20">
+                <div class="container mx-auto px-4">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold orbitron gradient-text mb-4">METODE PEMBAYARAN</h2>
+                        <p class="text-xl text-gray-400">Pilih metode pembayaran yang nyaman untuk Anda</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <div class="card-gaming rounded-2xl p-8 text-center">
+                            <div class="w-20 h-20 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-qrcode text-white text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">QRIS</h3>
+                            <p class="text-gray-400 mb-6">Scan QRIS untuk pembayaran cepat dan mudah</p>
+                            <div class="bg-white p-4 rounded-lg inline-block">
+                                <img src="https://i.ibb.co.com/hxjYgCS3/qris.jpg/view?usp=sharing" alt="QRIS Payment" class="w-64 h-64">
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">Scan dengan aplikasi e-wallet Anda</p>
+                        </div>
+                        <div class="card-gaming rounded-2xl p-8 text-center">
+                            <div class="w-20 h-20 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-receipt text-white text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">Upload Bukti</h3>
+                            <p class="text-gray-400 mb-6">Upload bukti pembayaran dan kami akan proses segera</p>
+                            <button @click="currentPage = 'store'" class="btn-primary">
+                                <i class="fas fa-upload mr-2"></i>Upload Bukti Pembayaran
+                            </button>
+                            <p class="text-sm text-gray-500 mt-4">Proses 1-10 menit</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- Store Page -->
+        <div x-show="currentPage === 'store'" class="fade-in py-20">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold gradient-text mb-4">PREMIUM STORE</h2>
+                    <p class="text-lg text-gray-400">Choose your power-up package</p>
+                </div>
+                
+                <!-- Loading state -->
+                <div x-show="productsLoading" class="flex justify-center items-center py-12">
+                    <div class="loading-spinner mr-4"></div>
+                    <p class="text-gray-400">Memuat produk...</p>
+                </div>
+                
+                <!-- Error state -->
+                <div x-show="productsError" class="text-center py-12">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                    <p class="text-red-400 mb-4" x-text="productsError"></p>
+                    <button @click="loadProducts()" class="btn-primary">
+                        <i class="fas fa-redo mr-2"></i>Coba Lagi
+                    </button>
+                </div>
+                
+                <!-- PRODUCT -->
+                <div id="PRODUCT" class="tab-content">
+                <div class="product-grid">
+                <div class="product-card"><img src="images/coin.jpg" alt="Script Coin"><h2>Script Coin</h2><p>Top Up Coin Secara Gratis.</p><p class="price">Rp 50.000</p><button class="custom-btn" onclick="beliProduk('Script Coin')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/money.jpg" alt="Script Money"><h2>Script Money</h2><p>Top Up Money Secara Instant.</p><p class="price">Rp 20.000</p><button class="custom-btn" onclick="beliProduk('Script Money')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/race.jpg" alt="Script Race"><h2>Script Race</h2><p>Kecepatan Super Dan Jadilah Pemenang Dalam Game Anda.</p><p class="price">Rp 40.000</p><button class="custom-btn" onclick="beliProduk('Script Race')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/prank.jpg" alt="Script Prank"><h2>Script Prank</h2><p>Prank Buat Hiburan Di Game Bersama Teman Anda.</p><p class="price">Rp 30.000</p><button class="custom-btn" onclick="beliProduk('Script Prank')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/liaran.jpg" alt="Script Liaran"><h2>Script Liaran</h2><p>Jadi Lah Pemenang Dalam Ajang Balap Liaran Dengan Kecepatan Maksimum.</p><p class="price">Rp 40.000</p><button class="custom-btn" onclick="beliProduk('Script Unlock')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/achievement.jpg" alt="Script Achievement"><h2>Script Achievement</h2><p>Capai semua prestasi game.</p><p class="price">Rp 60.000</p><button class="custom-btn" onclick="beliProduk('Script Achievement')">Beli Sekarang</button></div>
+                <div class="product-card"><img src="images/request.jpg" alt="Script Request"><h2>Script Request</h2><p>Anda Bisa Request Sesuai Kebutuhan Anda, Harga Bisa Berubah Sewaktu-waktu.</p><p class="price">Rp 30.000</p><button class="custom-btn" onclick="beliProduk('Script Request')">Beli Sekarang</button></div>
+                   </div>
+                      </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Page -->
+        <div x-show="currentPage === 'tools'" class="fade-in py-20">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold gradient-text mb-4">CPM MOD TOOLS</h2>
+                    <p class="text-lg text-gray-400">Kelola dan modifikasi akun CPM Anda</p>
+                </div>
+                <div class="max-w-2xl mx-auto">
+                    <div class="card rounded-xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-3" :class="cpmUser.isLoggedIn ? 'bg-green-500' : 'bg-red-500'"></div>
+                                <span class="font-medium">Status Login: <span x-text="cpmUser.isLoggedIn ? 'Sudah Login' : 'Belum Login'"></span></div>
+                            </div>
+                            <div class="font-mono text-sm">
+                                Player ID: <span x-text="cpmUser.playerId || 'N/A'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="cpmMessage.text" class="mb-6 p-4 rounded-lg" :class="{
+                        'bg-green-900/20 border border-green-500 text-green-300': cpmMessage.type === 'success',
+                        'bg-red-900/20 border border-red-500 text-red-300': cpmMessage.type === 'error',
+                        'bg-yellow-900/20 border border-yellow-500 text-yellow-300': cpmMessage.type === 'warning'
+                    }">
+                        <p x-text="cpmMessage.text"></p>
+                    </div>
+
+                    <div x-show="!cpmUser.isLoggedIn" class="card rounded-xl p-6 mb-6">
+                        <h3 class="text-xl font-bold gradient-text mb-4 text-center">Login Akun CPM</h3>
+                        <form @submit.prevent="cpmLogin" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-purple-400 mb-2">Email CPM</label>
+                                <input type="email" x-model="cpmLoginForm.email" required class="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 text-white" placeholder="email@contoh.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-purple-400 mb-2">Password CPM</label>
+                                <input type="password" x-model="cpmLoginForm.password" required class="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 text-white">
+                            </div>
+                            <button type="submit" :disabled="cpmLoading" class="w-full btn-primary disabled:opacity-50">
+                                <span x-show="!cpmLoading">LOGIN</span>
+                                <span x-show="cpmLoading">LOGIN...</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div x-show="cpmUser.isLoggedIn" class="space-y-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-xl font-bold gradient-text mb-4 text-center">Cek Data Akun</h3>
+                            <p class="text-gray-400 mb-4 text-center">Ambil data pemain dan mobil terbaru dari server CPM.</p>
+                            <button @click="cpmCheckAccount" :disabled="cpmLoading" class="w-full btn-secondary disabled:opacity-50">
+                                <span x-show="!cpmLoading">PERBARUI DATA</span>
+                                <span x-show="cpmLoading">MENGAMBIL DATA...</span>
+                            </button>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-xl font-bold gradient-text mb-4 text-center">Unlock All Cars</h3>
+                            <p class="text-gray-400 mb-4 text-center">Proses ini akan membuka kunci semua mobil yang tersedia.</p>
+                            <button @click="cpmUnlockAllCars" :disabled="cpmLoading" class="w-full btn-primary disabled:opacity-50">
+                                <span x-show="!cpmLoading">UNLOCK SEMUA MOBIL</span>
+                                <span x-show="cpmLoading">MEMPROSES...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div x-show="currentPage === 'login'" class="fade-in py-20">
+            <div class="container mx-auto px-4">
+                <div class="max-w-md mx-auto card rounded-xl p-8 text-center">
+                    <div class="w-20 h-20 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-white text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold gradient-text mb-2">WELCOME</h2>
+                    <p class="text-gray-400 mb-8">Login with your Google account to continue</p>
+                    <div id="googleSignInButton" class="flex justify-center"></div>
+                    <p x-show="status" class="mt-4 text-sm text-yellow-400" x-text="status"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div x-show="currentPage === 'profile' && currentUser" class="fade-in py-20">
+            <div class="container mx-auto px-4">
+                <div class="max-w-2xl mx-auto card rounded-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white">
+                        <div class="flex items-center space-x-4">
+                            <img :src="currentUser.picture" class="w-20 h-20 rounded-full border-4 border-white" :alt="currentUser.name">
+                            <div>
+                                <h2 class="text-xl font-bold" x-text="currentUser.name"></h2>
+                                <p class="text-purple-100" x-text="currentUser.email"></p>
+                                <div class="mt-2">
+                                    <span x-show="currentUser.is_premium" class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">PREMIUM USER</span>
+                                    <span x-show="!currentUser.is_premium" class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Free User</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-purple-300 mb-4">Informasi Akun</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between"><span class="text-gray-400">User ID</span><span class="font-medium font-mono text-sm" x-text="currentUser.google_id"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-400">Bergabung</span><span class="font-medium" x-text="new Date(currentUser.created_at).toLocaleDateString('id-ID')"></span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-purple-300 mb-4">Saldo</h3>
+                            <div class="bg-black/20 rounded-lg p-4 border border-purple-500/20">
+                                <div class="text-2xl font-bold gradient-text">Rp <span x-text="parseInt(currentUser.balance).toLocaleString('id-ID')"></span></div>
+                                <button @click="currentPage = 'store'" class="mt-2 btn-primary text-sm">Top Up</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div x-show="showPaymentModal" x-transition class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+            <div class="card rounded-xl max-w-md w-full" @click.away="showPaymentModal = false">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-4">Konfirmasi Pembayaran</h3>
+                    <template x-if="selectedProduct">
+                        <div class="mb-4">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <img :src="selectedProduct.image_url" class="w-16 h-16 rounded-lg">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold" x-text="selectedProduct.name"></h4>
+                                    <p class="text-xl font-bold gradient-text">Rp <span x-text="parseInt(selectedProduct.price).toLocaleString('id-ID')"></span></p>
+                                </div>
+                            </div>
+                            <template x-if="!currentUser">
+                                <div class="text-center py-4">
+                                    <p class="mb-4">Login terlebih dahulu untuk melanjutkan</p>
+                                    <button @click="currentPage = 'login'; showPaymentModal = false" class="btn-primary">Login</button>
+                                </div>
+                            </template>
+                            <template x-if="currentUser">
+                                <form @submit.prevent="submitPayment" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Nama Lengkap</label>
+                                        <input type="text" x-model="paymentForm.fullName" required class="w-full px-3 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">No. WhatsApp</label>
+                                        <input type="tel" x-model="paymentForm.whatsapp" required class="w-full px-3 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Upload Bukti Pembayaran</label>
+                                        <input type="file" @change="handleImageUpload" accept="image/*" required class="w-full text-sm">
+                                    </div>
+                                    <button type="submit" :disabled="paymentLoading" class="w-full btn-primary disabled:opacity-50">
+                                        <span x-show="!paymentLoading">Kirim Bukti Pembayaran</span>
+                                        <span x-show="paymentLoading">Mengirim...</span>
+                                    </button>
+                                </form>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div x-show="notification.show" x-transition class="fixed bottom-4 right-4 bg-gray-800 border border-purple-500/30 rounded-lg shadow-xl p-4 max-w-sm z-50 text-white">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i :class="{'fa-check-circle text-green-500': notification.type === 'success', 'fa-exclamation-circle text-red-500': notification.type === 'error', 'fa-info-circle text-blue-500': notification.type === 'info'}" class="fas text-xl"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium" x-text="notification.title"></p>
+                    <p class="mt-1 text-sm text-gray-400" x-text="notification.message"></p>
+                </div>
+                <button @click="notification.show = false" class="ml-auto flex-shrink-0">
+                    <i class="fas fa-times text-gray-400 hover:text-gray-200"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black/50 border-t border-purple-500/20 text-white py-8">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; <span x-text="new Date().getFullYear()"></span> AWIMEDAN CPM. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function app() {
+            return {
+                // STATE
+                currentPage: 'home',
+                loading: true,
+                currentUser: null,
+                status: '',
+                notification: { show: false, type: 'info', title: '', message: '' },
+                products: [],
+                productsLoading: false,
+                productsError: '',
+                cpmLoading: false,
+                paymentLoading: false,
+                showPaymentModal: false,
+                selectedProduct: null,
+                paymentForm: { fullName: '', whatsapp: '', email: '', proofImage: '' },
+                
+                // CPM MOD TOOLS STATE
+                cpmUser: { isLoggedIn: false, playerId: null, idToken: null },
+                cpmMessage: { type: '', text: '' },
+                cpmLoginForm: { email: '', password: '' },
+
+                API_BASE_URL: 'projects/api.php',
+
+                // INITIALIZATION
+                init() {
+                    this.loadUserFromStorage();
+                    this.initGoogleSignIn();
+                    this.loadProducts();
+                    setTimeout(() => { this.loading = false; }, 1500);
+                },
+                
+                // USER & SESSION MANAGEMENT
+                loadUserFromStorage() {
+                    const savedUser = localStorage.getItem('currentUser');
+                    if (savedUser) {
+                        this.currentUser = JSON.parse(savedUser);
+                        this.refreshUserData();
+                    }
+                },
+                
+                async refreshUserData() {
+                    if (!this.currentUser) return;
+                    try {
+                        const response = await fetch(`${this.API_BASE_URL}?action=get_user_data&user_id=${this.currentUser.google_id}`);
+                        const data = await response.json();
+                        if (data.status === 'success') this.saveUser(data.data);
+                        else this.logout();
+                    } catch (e) { console.error("Failed to refresh user data:", e); }
+                },
+
+                saveUser(user) { 
+                    this.currentUser = user; 
+                    localStorage.setItem('currentUser', JSON.stringify(user)); 
+                },
+                logout() { 
+                    this.currentUser = null; 
+                    localStorage.removeItem('currentUser'); 
+                    this.currentPage = 'home'; 
+                    this.showNotification('info', 'Logout', 'Anda telah berhasil keluar.'); 
+                },
+
+                // GOOGLE SIGN-IN
+                initGoogleSignIn() { 
+                    this.$watch('currentPage', v => { 
+                        if (v === 'login') this.$nextTick(() => this.renderGoogleButton()) 
+                    }) 
+                },
+                renderGoogleButton() {
+                    if (typeof google === 'undefined') {
+                        const script = document.createElement('script');
+                        script.src = 'https://accounts.google.com/gsi/client';
+                        script.async = true; script.defer = true;
+                        script.onload = () => this.renderGoogleButton();
+                        document.head.appendChild(script);
+                        return;
+                    }
+                    const btnContainer = document.getElementById('googleSignInButton');
+                    if (!btnContainer || btnContainer.childElementCount > 0) return;
+                    google.accounts.id.initialize({
+                        client_id: '490669700883-1f4dnfk5634js6e0ne1cdp6tii1n92d7.apps.googleusercontent.com',
+                        callback: (response) => { this.handleGoogleLogin(response); }
+                    });
+                    google.accounts.id.renderButton(btnContainer, { theme: 'outline', size: 'large', text: 'signin_with', width: '300' });
+                },
+                async handleGoogleLogin(response) {
+                    this.status = 'Memverifikasi...';
+                    try {
+                        const res = await fetch(`${this.API_BASE_URL}?action=google_login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_token: response.credential }) });
+                        const data = await res.json();
+                        if (data.status === 'success' && data.data) {
+                            this.saveUser(data.data);
+                            this.showNotification('success', 'Login Berhasil!', `Selamat datang, ${data.data.name}.`);
+                            this.currentPage = 'home';
+                        } else { throw new Error(data.message || 'Respons server tidak valid.'); }
+                    } catch (error) {
+                        this.status = `Login Gagal: ${error.message}`;
+                        this.showNotification('error', 'Login Gagal', error.message);
+                    }
+                },
+
+                async loadProducts() {
+                    this.productsLoading = true;
+                    this.productsError = '';
+                    try {
+                        const res = await fetch(`${this.API_BASE_URL}?action=get_products`);
+                        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+                        const d = await res.json();
+                        if (d && d.status === 'success' && Array.isArray(d.data)) {
+                            this.products = d.data;
+                        } else {
+                            throw new Error(d.message || 'Server mengembalikan response tidak valid.');
+                        }
+                    } catch (e) {
+                        console.error('Failed to load products:', e);
+                        this.productsError = e.message || 'Gagal memuat produk';
+                    } finally {
+                        this.productsLoading = false;
+                    }
+                },
+
+                // FEATURE FUNCTIONS
+                selectProduct(p) { 
+                    this.selectedProduct = p; 
+                    this.paymentForm.email = this.currentUser?.email || ''; 
+                    this.paymentForm.fullName = this.currentUser?.name || ''; 
+                    this.showPaymentModal = true; 
+                },
+                handleImageUpload(e) { 
+                    const f = e.target.files[0]; 
+                    if(!f) return; 
+                    const r = new FileReader(); 
+                    r.onload = (ev) => { this.paymentForm.proofImage = ev.target.result; }; 
+                    r.readAsDataURL(f); 
+                },
+                async submitPayment() {
+                    this.paymentLoading = true;
+                    try {
+                        const res = await fetch(`${this.API_BASE_URL}?action=submit_payment_proof`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: this.currentUser.google_id, product_id: this.selectedProduct.id, full_name: this.paymentForm.fullName, whatsapp: this.paymentForm.whatsapp, email: this.paymentForm.email, amount: this.selectedProduct.price, proof_image: this.paymentForm.proofImage }) });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            this.showNotification('success', 'Pembayaran Terkirim', 'Menunggu konfirmasi admin.');
+                            this.showPaymentModal = false;
+                        } else { throw new Error(data.message); }
+                    } catch (error) { this.showNotification('error', 'Error', error.message); } finally { this.paymentLoading = false; }
+                },
+                async buyItem(product) {
+                    if (!this.currentUser) {
+                        this.showNotification('error', 'Login Diperlukan', 'Silakan login terlebih dahulu.');
+                        this.currentPage = 'login';
+                        return;
+                    }
+                    
+                    if (parseInt(this.currentUser.balance) < parseInt(product.price)) {
+                        this.showNotification('error', 'Saldo Tidak Cukup', `Saldo Anda Rp ${parseInt(this.currentUser.balance).toLocaleString('id-ID')} tidak cukup untuk membeli item ini.`);
+                        return;
+                    }
+                    
+                    if (!confirm(`Anda akan membeli ${product.name} seharga Rp ${parseInt(product.price).toLocaleString('id-ID')} dari saldo Anda. Lanjutkan?`)) {
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`${this.API_BASE_URL}?action=purchase_item`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                user_id: this.currentUser.google_id, 
+                                product_id: product.id,
+                                price: product.price
+                            })
+                        });
+                        
+                        const data = await res.json();
+
+                        if (data.status === 'success') {
+                            this.currentUser = data.data.user;
+                            localStorage.setItem('currentUser', JSON.stringify(data.data.user));
+                            
+                            this.showNotification('success', 'Pembelian Berhasil', `Anda telah membeli ${product.name}. Saldo Anda sekarang Rp ${parseInt(data.data.user.balance).toLocaleString('id-ID')}.`);
+                        } else {
+                            throw new Error(data.message || 'Terjadi kesalahan saat memproses pembelian.');
+                        }
+                    } catch (err) {
+                        this.showNotification('error', 'Gagal Membeli', err.message);
+                    }
+                },
+
+                // CPM MOD TOOLS FUNCTIONS
+                showCpmMessage(type, text) {
+                    this.cpmMessage = { type, text };
+                    setTimeout(() => { this.cpmMessage = { type: '', text: '' }; }, 10000);
+                },
+
+                async cpmLogin() {
+                    this.cpmLoading = true;
+                    this.showCpmMessage('info', 'Sedang login...');
+                    try {
+                        const response = await fetch(`${this.API_BASE_URL}?action=cpm_login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.cpmLoginForm)
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            this.cpmUser.isLoggedIn = true;
+                            this.cpmUser.playerId = data.data.localId;
+                            this.cpmUser.idToken = data.data.idToken;
+                            this.showCpmMessage('success', 'Login berhasil! Player ID: ' + data.data.localId);
+                            this.cpmLoginForm = { email: '', password: '' };
+                        } else {
+                            this.showCpmMessage('error', data.message || 'Login gagal.');
+                        }
+                    } catch (error) {
+                        this.showCpmMessage('error', 'Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.cpmLoading = false;
+                    }
+                },
+
+                async cpmCheckAccount() {
+                    if (!this.cpmUser.isLoggedIn) {
+                        this.showCpmMessage('warning', 'Anda harus login terlebih dahulu.');
+                        return;
+                    }
+                    this.cpmLoading = true;
+                    this.showCpmMessage('info', 'Mengambil data dari server...');
+                    try {
+                        const response = await fetch(`${this.API_BASE_URL}?action=cpm_check_account`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ idToken: this.cpmUser.idToken, localId: this.cpmUser.playerId })
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            this.showCpmMessage('success', data.message);
+                        } else {
+                            this.showCpmMessage('error', data.message || 'Gagal mengambil data.');
+                        }
+                    } catch (error) {
+                        this.showCpmMessage('error', 'Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.cpmLoading = false;
+                    }
+                },
+
+                async cpmUnlockAllCars() {
+                    if (!this.cpmUser.isLoggedIn) {
+                        this.showCpmMessage('warning', 'Anda harus login terlebih dahulu.');
+                        return;
+                    }
+                    if (!confirm('Proses ini akan memodifikasi data akun Anda. Apakah Anda yakin?')) {
+                        return;
+                    }
+                    this.cpmLoading = true;
+                    this.showCpmMessage('info', 'Memulai proses unlock...');
+                    try {
+                        const response = await fetch(`${this.API_BASE_URL}?action=cpm_unlock_all_cars`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ idToken: this.cpmUser.idToken, localId: this.cpmUser.playerId })
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            this.showCpmMessage('success', data.message);
+                        } else {
+                            this.showCpmMessage('error', data.message || 'Proses gagal.');
+                        }
+                    } catch (error) {
+                        this.showCpmMessage('error', 'Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.cpmLoading = false;
+                    }
+                },
+
+                showNotification(type, title, message) { 
+                    this.notification = { show: true, type, title, message }; 
+                    setTimeout(() => this.notification.show = false, 5000); 
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>
