@@ -20,8 +20,6 @@
             background: #0a0a0a; 
             color: #ffffff; 
             overflow-x: hidden;
-            /* Background tetap menggunakan URL luar agar tampilan tidak pecah saat awal, 
-               tapi jika kamu punya file background sendiri di folder, ganti url() di bawah ke 'images/bg.jpg' */
             background-image: linear-gradient(to bottom, rgba(10,10,10,0.8), #0a0a0a), url('https://w0.peakpx.com/wallpaper/424/62/HD-wallpaper-r34-nissan-skyline-gtr-bayside-blue-jdm.jpg');
             background-attachment: fixed;
             background-size: cover;
@@ -52,6 +50,25 @@
         .sidebar-glass { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px); z-index: 1000; border-left: 1px solid rgba(255, 49, 49, 0.2); }
         
         [x-cloak] { display: none !important; }
+
+        /* CUSTOM CARD SIZE FOR 3264x1836 BANNERS (16:9 Aspect Ratio) */
+        .banner-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* Rasio 16:9 agar banner tidak terpotong */
+            overflow: hidden;
+            border-radius: 8px;
+            background: #111;
+        }
+
+        .banner-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body x-data="app()" x-init="init()">
@@ -177,18 +194,21 @@
 
             <div id="catalog" class="py-12">
                 <h2 class="text-2xl font-black italic uppercase mb-10 border-l-4 border-red-600 pl-4">Katalog <span class="accent-red">Premium</span></h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                     <template x-for="p in products" :key="p.name">
-                        <div class="stat-card p-3 md:p-5 flex flex-col hover:border-red-600 group">
-                            <div class="relative overflow-hidden rounded-lg mb-4 h-48">
-                                <img :src="p.img" class="w-full h-full object-cover group-hover:scale-110">
-                                <div class="absolute top-2 right-2 bg-black/80 px-2 py-1 rounded text-[10px] font-bold">SALE</div>
+                        <div class="stat-card p-4 md:p-6 flex flex-col hover:border-red-600 group transition-all duration-300">
+                            <div class="banner-container mb-5">
+                                <img :src="p.img" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute top-3 right-3 bg-red-600 px-3 py-1 rounded text-[10px] font-black italic shadow-lg">SALE</div>
                             </div>
-                            <h3 class="font-bold text-sm mb-1 truncate" x-text="p.name"></h3>
-                            <p class="accent-red font-black text-lg mb-4" x-text="'Rp ' + p.price.toLocaleString()"></p>
-                            <button @click="beliProduk(p.name)" class="w-full bg-white text-black py-3 rounded font-black text-[10px] uppercase tracking-tighter hover:bg-red-600 hover:text-white">
-                                Beli Sekarang
-                            </button>
+                            
+                            <h3 class="font-bold text-lg mb-2 truncate text-gray-100" x-text="p.name"></h3>
+                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                                <p class="accent-red font-black text-2xl tracking-tighter" x-text="'Rp ' + p.price.toLocaleString()"></p>
+                                <button @click="beliProduk(p.name)" class="bg-white text-black px-6 py-3 rounded-lg font-black text-[11px] uppercase tracking-tighter hover:bg-red-600 hover:text-white shadow-xl active:scale-95">
+                                    Beli Sekarang
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -332,7 +352,6 @@
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
-                // Update img path ke folder images lokal
                 products: [
                     { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
                     { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg' },
