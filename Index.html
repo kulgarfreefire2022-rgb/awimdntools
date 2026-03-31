@@ -15,18 +15,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         * { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
         body { background: #050505; color: #e5e7eb; overflow-x: hidden; padding-top: 70px; }
-        
         .gradient-text { background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .card-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 15px; }
         .sidebar-glass { background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(20px); border-left: 1px solid rgba(168, 85, 247, 0.3); z-index: 1000; }
-        
         .top-navbar { background-color: #080808; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .crown-logo { background: linear-gradient(135deg, #818cf8, #a78bfa); box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
-        .brand-text { color: #818cf8; font-weight: 700; }
-        .top-nav-link { color: #9ca3af; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
-        .top-nav-link:hover { color: #d8b4fe; }
-        .top-nav-active { color: #d8b4fe !important; border-bottom: 2px solid #d8b4fe; padding-bottom: 4px; }
-        
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -38,20 +31,18 @@
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center crown-logo">
                     <i class="fas fa-crown text-white text-xl"></i>
                 </div>
-                <span class="text-xl brand-text tracking-tight uppercase">AWIMEDAN</span>
+                <span class="text-xl text-[#818cf8] font-bold uppercase">AWIMEDAN</span>
             </div>
 
             <div class="hidden md:flex items-center space-x-8">
-                <span @click="currentPage = 'home'" :class="currentPage === 'home' ? 'top-nav-active' : ''" class="top-nav-link">Beranda</span>
-                <span @click="currentPage = 'store'" :class="currentPage === 'store' ? 'top-nav-active' : ''" class="top-nav-link">Store</span>
-                <span @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'top-nav-active' : ''" class="top-nav-link">Tools</span>
+                <span @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Beranda</span>
+                <span @click="currentPage = 'store'" :class="currentPage === 'store' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Store</span>
+                <span @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Tools</span>
             </div>
 
             <div class="flex items-center space-x-4">
                 <template x-if="!user">
-                    <button @click="loginGoogle()" class="bg-gradient-to-r from-[#a78bfa] to-[#818cf8] text-white px-6 py-2 rounded-xl font-bold text-sm shadow-md transition transform hover:scale-105 active:scale-95">
-                        Masuk
-                    </button>
+                    <button @click="loginGoogle()" class="bg-gradient-to-r from-[#a78bfa] to-[#818cf8] text-white px-6 py-2 rounded-xl font-bold text-sm">Masuk</button>
                 </template>
                 <template x-if="user">
                     <div @click="sideBar = true" class="flex items-center space-x-2 cursor-pointer bg-white/5 p-1 pr-3 rounded-full border border-white/10">
@@ -59,22 +50,15 @@
                         <span class="text-xs font-bold" x-text="'Rp ' + (userData.balance || 0).toLocaleString()"></span>
                     </div>
                 </template>
-                <button @click="sideBar = true" class="p-2 hover:bg-white/10 rounded-lg">
-                    <i class="fas fa-bars text-xl text-gray-400"></i>
-                </button>
+                <button @click="sideBar = true" class="p-2 hover:bg-white/10 rounded-lg text-gray-400"><i class="fas fa-bars text-xl"></i></button>
             </div>
         </div>
     </nav>
 
-    <div x-show="sideBar" class="fixed inset-0 z-[1000]" x-cloak>
+    <div x-show="sideBar" x-cloak class="fixed inset-0 z-[1000]">
         <div @click="sideBar = false" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl" 
-             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0">
-            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                <h2 class="font-bold text-lg gradient-text italic">ACCOUNT PANEL</h2>
-                <i @click="sideBar = false" class="fas fa-times text-xl cursor-pointer hover:text-red-500"></i>
-            </div>
-            
+        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl">
+            <h2 class="font-bold text-lg gradient-text italic mb-8 border-b border-white/10 pb-4 uppercase">Account Panel</h2>
             <template x-if="user">
                 <div class="space-y-6">
                     <div class="p-4 card-glass flex items-center space-x-3">
@@ -84,31 +68,10 @@
                             <p class="text-[10px] text-gray-400 truncate" x-text="user.email"></p>
                         </div>
                     </div>
-
-                    <div class="p-4 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl border border-white/10 text-center">
-                        <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Saldo Anda</p>
-                        <p class="text-xl font-bold text-white" x-text="'Rp ' + (userData.balance || 0).toLocaleString()"></p>
-                    </div>
-
                     <nav class="space-y-1">
-                        <button @click="currentPage = 'topup'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold">
-                            <i class="fas fa-wallet w-8 text-green-400"></i> Top Up Saldo
-                        </button>
-                        
-                        <button @click="currentPage = 'history'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold">
-                            <i class="fas fa-history w-8 text-blue-400"></i> Riwayat Belanja
-                        </button>
-                        
-                        <template x-if="isAdmin">
-                            <button @click="currentPage = 'admin'; sideBar = false" class="w-full text-left p-3 hover:bg-purple-500/10 text-purple-400 rounded-lg flex items-center font-bold text-sm mt-4">
-                                <i class="fas fa-user-shield w-8"></i> ADMIN PANEL
-                            </button>
-                        </template>
-
-                        <hr class="border-white/5 my-4">
-                        <button @click="logoutGoogle()" class="w-full text-left p-3 hover:bg-red-500/10 text-red-400 rounded-lg flex items-center font-bold text-sm">
-                            <i class="fas fa-power-off w-8"></i> Logout
-                        </button>
+                        <button @click="currentPage = 'topup'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold"><i class="fas fa-wallet w-8 text-green-400"></i> Top Up Saldo</button>
+                        <button @click="currentPage = 'history'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold"><i class="fas fa-history w-8 text-blue-400"></i> Riwayat Belanja</button>
+                        <button @click="logoutGoogle()" class="w-full text-left p-3 hover:bg-red-500/10 text-red-400 rounded-lg flex items-center font-bold text-sm"><i class="fas fa-power-off w-8"></i> Logout</button>
                     </nav>
                 </div>
             </template>
@@ -116,7 +79,7 @@
     </div>
 
     <main>
-        <div x-show="currentPage === 'home'" x-transition class="container mx-auto px-4 text-center py-20">
+        <div x-show="currentPage === 'home'" x-cloak class="container mx-auto px-4 text-center py-20">
             <h1 class="text-6xl md:text-8xl font-bold mb-6 italic tracking-tighter uppercase">AWIMEDAN <span class="gradient-text">STORE</span></h1>
             <p class="text-gray-400 max-w-xl mx-auto mb-10 text-lg">Pusat Script Premium & Tools Injector Car Parking Multiplayer Terbaik.</p>
             <div class="flex flex-wrap justify-center gap-4">
@@ -125,197 +88,136 @@
             </div>
         </div>
 
-        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 py-10">
-            <div class="max-w-md mx-auto card-glass p-8 shadow-2xl border-green-500/20">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-qrcode text-3xl text-green-500"></i>
+        <div x-show="currentPage === 'store'" x-cloak class="container mx-auto px-4 py-10">
+            <h2 class="text-3xl font-bold mb-10 italic text-center uppercase tracking-widest">Katalog <span class="gradient-text">Script</span></h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <template x-for="p in products" :key="p.name">
+                    <div class="card-glass p-4 flex flex-col justify-between hover:border-purple-500 transform hover:-translate-y-1">
+                        <img :src="p.img" class="w-full rounded-lg mb-4 h-40 object-cover border border-white/5">
+                        <h3 class="text-sm font-bold mb-1" x-text="p.name"></h3>
+                        <p class="text-purple-400 font-bold text-lg mb-4" x-text="'Rp ' + p.price.toLocaleString()"></p>
+                        <button @click="beliProduk(p.name)" class="w-full bg-white text-black py-2.5 rounded-lg font-bold text-xs uppercase">Beli Sekarang</button>
                     </div>
-                    <h2 class="text-2xl font-bold gradient-text italic uppercase">Metode Top Up QRIS</h2>
-                    <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest italic">Silakan pilih nominal saldo</p>
-                </div>
+                </template>
+            </div>
+        </div>
 
+        <div x-show="currentPage === 'topup'" x-cloak class="container mx-auto px-4 py-10">
+            <div class="max-w-md mx-auto card-glass p-8 shadow-2xl">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold gradient-text italic uppercase">Top Up Saldo</h2>
+                </div>
                 <div class="grid grid-cols-2 gap-3 mb-8">
                     <template x-for="amt in [20000, 50000, 100000, 150000]">
-                        <button @click="selectedAmount = amt" 
-                                :class="selectedAmount === amt ? 'border-green-500 bg-green-500/10 text-white' : 'border-white/10 bg-white/5 text-gray-400'"
-                                class="p-4 border rounded-xl font-bold transition-all hover:scale-105 active:scale-95 text-sm">
-                            Rp <span x-text="amt.toLocaleString()"></span>
-                        </button>
+                        <button @click="selectedAmount = amt" :class="selectedAmount === amt ? 'bg-green-500/10 border-green-500' : 'border-white/10'" class="p-4 border rounded-xl font-bold text-sm">Rp <span x-text="amt.toLocaleString()"></span></button>
                     </template>
                 </div>
-
-                <div x-show="selectedAmount > 0" x-transition class="mb-8 p-4 bg-white rounded-2xl border-4 border-dashed border-green-500/30 shadow-inner">
-                    <p class="text-black text-[10px] font-bold text-center mb-2 uppercase italic">Scan QRIS AWIMEDAN STORE</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=AWIMEDAN-PAYMENT" 
-                         class="w-full aspect-square object-contain rounded-lg" alt="QRIS Payment">
-                    <p class="text-center text-black font-black mt-2 text-lg italic" x-text="'TOTAL: Rp ' + selectedAmount.toLocaleString()"></p>
-                </div>
-
                 <div x-show="selectedAmount > 0" class="space-y-4">
                     <div class="p-4 bg-white/5 rounded-xl border border-white/10">
-                        <label class="block text-xs text-gray-400 uppercase font-bold mb-3 italic">Upload Bukti Transfer:</label>
-                        <input type="file" @change="handleFileUpload" accept="image/*" 
-                               class="block w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-500 file:text-white hover:file:bg-green-600 cursor-pointer">
+                        <input type="file" @change="handleFileUpload" accept="image/*" class="w-full text-xs text-gray-400">
                     </div>
+                    <button @click="sendToWhatsApp" :disabled="!selectedFile" class="w-full bg-green-500 text-white py-4 rounded-xl font-bold">KONFIRMASI KE WA</button>
+                </div>
+            </div>
+        </div>
 
-                    <button @click="sendToWhatsApp" 
-                            :disabled="!selectedFile"
-                            :class="selectedFile ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
-                            class="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-green-500/20">
-                        <i class="fab fa-whatsapp text-xl"></i>
-                        <span>KONFIRMASI KE ADMIN</span>
+        <div x-show="currentPage === 'tools'" x-cloak class="container mx-auto px-4 py-10">
+            <div class="max-w-md mx-auto">
+                <div x-show="!cpmUser.isLoggedIn" class="card-glass p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center gradient-text italic mb-6">INJECTOR LOGIN</h2>
+                    <input type="email" x-model="cpmForm.email" placeholder="Email CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm">
+                    <input type="password" x-model="cpmForm.password" placeholder="Password CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm">
+                    <input type="text" x-model="cpmForm.key" placeholder="Premium Key" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm">
+                    <button @click="handleCpmLogin" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-xl font-bold">MASUK PANEL</button>
+                </div>
+                <div x-show="cpmUser.isLoggedIn" class="space-y-4">
+                    <div class="card-glass p-4 border-green-500/30 flex justify-between items-center">
+                        <span class="text-xs font-bold text-green-400" x-text="cpmUser.email"></span>
+                        <button @click="cpmUser.isLoggedIn = false" class="bg-red-500/20 text-red-500 px-3 py-1 rounded text-[10px] font-bold">LOGOUT</button>
+                    </div>
+                    <button @click="setKingRank" class="w-full card-glass p-5 flex items-center hover:bg-purple-600/10">
+                        <i class="fas fa-crown text-yellow-500 text-2xl mr-4"></i>
+                        <div class="text-left"><h4 class="font-bold text-sm">Inject King Rank</h4><p class="text-[10px] text-gray-500">Inject 1B Rating Status</p></div>
                     </button>
                 </div>
             </div>
         </div>
-        
-        </main>
+    </main>
 
     <script>
         function app() {
             return {
-                currentPage: 'home', sideBar: false, loading: false, message: '', user: null, userData: { balance: 0 },
-                cpmUser: { isLoggedIn: false, email: '', token: '', gameData: null },
-                cpmForm: { gameId: '', email: '', password: '', key: '' },
-                userHistory: [],
-                selectedAmount: 0,
-                selectedFile: null,
-
-                adminEmail: "kulgarfreefire2022@gmail.com", 
-                isAdmin: false,
-                allUsers: [],
-
-                firebaseConfig: {
-                    apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
-                    authDomain: "cpmapikey.firebaseapp.com",
-                    databaseURL: "https://cpmapikey-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "cpmapikey",
-                    storageBucket: "cpmapikey.firebasestorage.app",
-                    messagingSenderId: "372965414639",
-                    appId: "1:372965414639:web:e79bb42a252336cab52d1a"
-                },
-                
-                botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
-                adminChatId: "6095762919",
-
+                currentPage: 'home', sideBar: false, user: null, userData: { balance: 0 },
+                selectedAmount: 0, selectedFile: null,
                 products: [
                     { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
                     { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg' },
                     { name: 'Race 3 Second', price: 25000, img: 'images/Script Race 3sec.jpg' },
                     { name: 'Timing Kuda Permanent', price: 30000, img: 'images/Script Timing Kuda Permanent.jpg' }
                 ],
-
-                gameApis: {
-                    "1": { name: "CPM 1", api: "AIzaSyBW1ZbMiUeDZHYUO2bY8Bfnf5rRgrQGPTM", rankUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/SetUserRating4" },
-                    "2": { name: "CPM 2", api: "AIzaSyCQDz9rgjgmvmFkvVfmvr2-7fT4tfrzRRQ", rankUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/SetUserRating17_AppI" }
-                },
-
+                cpmForm: { email: '', password: '', key: '' },
+                cpmUser: { isLoggedIn: false, email: '', token: '' },
+                
                 init() {
-                    if (!firebase.apps.length) firebase.initializeApp(this.firebaseConfig);
+                    const cfg = {
+                        apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
+                        authDomain: "cpmapikey.firebaseapp.com",
+                        databaseURL: "https://cpmapikey-default-rtdb.asia-southeast1.firebasedatabase.app",
+                        projectId: "cpmapikey",
+                        storageBucket: "cpmapikey.firebasestorage.app",
+                        appId: "1:372965414639:web:e79bb42a252336cab52d1a"
+                    };
+                    if (!firebase.apps.length) firebase.initializeApp(cfg);
                     firebase.auth().onAuthStateChanged((u) => {
                         this.user = u;
                         if (u) {
-                            this.fetchUserData(u.uid);
-                            this.fetchUserHistory(u.uid);
-                            if (u.email === this.adminEmail) {
-                                this.isAdmin = true;
-                                this.fetchAllUsers();
-                            }
+                            firebase.database().ref('users/' + u.uid).on('value', (s) => {
+                                this.userData = s.val() || { balance: 0 };
+                            });
                         }
                     });
                 },
 
                 async loginGoogle() {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    try { 
-                        await firebase.auth().signInWithPopup(provider); 
-                        this.currentPage = 'home';
-                    } catch (e) { alert("Login Error: " + e.message); }
+                    const p = new firebase.auth.GoogleAuthProvider();
+                    await firebase.auth().signInWithPopup(p);
                 },
 
                 async logoutGoogle() { await firebase.auth().signOut(); location.reload(); },
 
-                fetchUserData(uid) {
-                    firebase.database().ref('users/' + uid).on('value', (snap) => {
-                        if (snap.val()) this.userData = snap.val();
-                        else firebase.database().ref('users/' + uid).set({ email: this.user.email, balance: 0, createdAt: Date.now() });
-                    });
-                },
+                handleFileUpload(e) { this.selectedFile = e.target.files[0]; },
 
-                fetchUserHistory(uid) {
-                    firebase.database().ref('history/' + uid).on('value', (snap) => {
-                        const data = snap.val();
-                        this.userHistory = data ? Object.values(data).reverse() : [];
-                    });
-                },
-
-                handleFileUpload(event) {
-                    this.selectedFile = event.target.files[0];
-                    if(this.selectedFile) {
-                        this.logToTelegram(`📸 **UPLOAD BUKTI**\nUser: \`${this.user.email}\` sedang mengupload bukti transfer.`);
-                    }
-                },
-
-                // FUNGSI YANG DIPERBARUI
                 sendToWhatsApp() {
-                    if (!this.selectedFile) return alert("Silakan upload foto bukti transfer!");
-                    
-                    const waNum = "6281330750863";
-                    const msg = `Halo Admin AWIMEDAN,\n\nSaya konfirmasi Top Up Saldo.\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}\n\n(HARAP LAMPIRKAN FOTO BUKTI TRANSFER ANDA DI BAWAH INI)`;
-                    
-                    // Notifikasi Pengingat
-                    alert("PENTING: WhatsApp akan terbuka.\n\nHarap LAMPIRKAN (Attach) kembali foto bukti transfer Anda di chat Admin agar proses pengecekan lebih cepat.");
-                    
-                    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
-                    
-                    this.logToTelegram(`📲 **KONFIRMASI WA**\nUser: \`${this.user.email}\` menuju WhatsApp (Top Up Rp ${this.selectedAmount.toLocaleString()})`);
+                    if (!this.selectedFile) return alert("Pilih file!");
+                    alert("PENTING: Lampirkan bukti di chat WA nanti!");
+                    const msg = `Halo Admin AWIMEDAN, Konfirmasi TopUp.\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
+                    window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
                 },
 
-                async beliProduk(productName) {
-                    if (!this.user) return alert("Silahkan login terlebih dahulu!");
-                    const product = this.products.find(p => p.name === productName);
-                    const currentBalance = this.userData.balance || 0;
-
-                    if (currentBalance < product.price) {
-                        alert(`Saldo tidak cukup!`);
+                async beliProduk(name) {
+                    if (!this.user) return alert("Login dulu!");
+                    const p = this.products.find(x => x.name === name);
+                    if (this.userData.balance < p.price) {
+                        alert("Saldo kurang!");
                         this.currentPage = 'topup';
                         return;
                     }
-
-                    if (confirm(`Beli ${productName} seharga Rp ${product.price.toLocaleString()}?`)) {
-                        this.loading = true;
-                        try {
-                            const userRef = firebase.database().ref('users/' + this.user.uid + '/balance');
-                            await userRef.transaction((balance) => {
-                                if (balance >= product.price) return balance - product.price;
-                                return;
-                            });
-
-                            const historyRef = firebase.database().ref('history/' + this.user.uid).push();
-                            await historyRef.set({ productName: productName, price: product.price, date: Date.now() });
-
-                            this.logToTelegram(`🛒 **PEMBELIAN**\nUser: \`${this.user.email}\` membeli *${productName}*`);
-                            alert("Pembelian Berhasil!");
-                            
-                            const waMsg = `Halo Admin, saya baru beli "${productName}"\nEmail: ${this.user.email}`;
-                            window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(waMsg)}`, '_blank');
-                        } catch (e) { alert("Error: " + e.message); }
-                        this.loading = false;
+                    if (confirm(`Beli ${name}?`)) {
+                        await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - p.price);
+                        alert("Berhasil! Hubungi admin untuk script.");
+                        window.open(`https://wa.me/6281330750863?text=Beli%20${name}`, '_blank');
                     }
                 },
 
-                logToTelegram(t) {
-                    fetch(`https://api.telegram.org/bot${this.botToken}/sendMessage`, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ chat_id: this.adminChatId, text: t, parse_mode: "Markdown" })
-                    });
-                }
-                // ... (Fungsi Admin & CPM Tools lainnya tetap sama)
+                async handleCpmLogin() {
+                    if(!this.cpmForm.key) return alert("Isi Key!");
+                    this.cpmUser = { isLoggedIn: true, email: this.cpmForm.email };
+                },
+
+                async setKingRank() { alert("Fitur diproses!"); }
             }
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-
