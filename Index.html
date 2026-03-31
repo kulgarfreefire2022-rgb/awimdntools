@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWIMEDAN PREMIUM - Store & Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        * { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        body { background: #050505; color: #e5e7eb; overflow-x: hidden; }
+        .gradient-text { background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 15px; }
+        .btn-premium { background: linear-gradient(135deg, #a855f7, #3b82f6); color: white; font-weight: bold; border-radius: 8px; }
+        .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4); }
+        .nav-link { cursor: pointer; font-weight: 500; transition: 0.3s; padding: 0.5rem 1rem; border-radius: 8px; }
+        .nav-link:hover { background: rgba(255, 255, 255, 0.05); }
+        .nav-active { color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+        .product-card:hover { border-color: #a855f7; transform: translateY(-5px); }
+    </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+    <nav class="fixed top-0 left-0 right-0 bg-black/90 backdrop-blur-md border-b border-white/10 z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center h-16">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-purple-600 rounded flex items-center justify-center font-bold">A</div>
+                <span class="text-xl font-bold gradient-text">AWIMEDAN</span>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-2">
+                <span @click="currentPage = 'home'" :class="currentPage === 'home' ? 'nav-active' : ''" class="nav-link">BERANDA</span>
+                <span @click="currentPage = 'store'" :class="currentPage === 'store' ? 'nav-active' : ''" class="nav-link">TOKO</span>
+                <span @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'nav-active' : ''" class="nav-link">TOOLS</span>
+                
+                <template x-if="!user">
+                    <button @click="currentPage = 'login'" :class="currentPage === 'login' ? 'nav-active' : ''" class="nav-link">LOGIN</button>
+                </template>
+                <template x-if="user">
+                    <div class="flex items-center space-x-3 ml-4 bg-white/5 p-1 pr-3 rounded-full">
+                        <img :src="user.photoURL" class="w-8 h-8 rounded-full border border-purple-500">
+                        <span class="text-xs font-bold" x-text="user.displayName.split(' ')[0]"></span>
+                        <i @click="logoutGoogle()" class="fas fa-sign-out-alt text-red-400 cursor-pointer hover:text-red-300"></i>
+                    </div>
+                </template>
+            </div>
+
+            <div class="md:hidden">
+                <i class="fas fa-bars text-2xl" @click="mobileMenu = !mobileMenu"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 min-h-screen">
+
+        <div x-show="currentPage === 'login'" x-transition class="container mx-auto px-4 py-20 flex justify-center">
+            <div class="card-glass p-10 w-full max-w-md text-center">
+                <h2 class="text-3xl font-bold gradient-text mb-6">Selamat Datang</h2>
+                <p class="text-gray-400 mb-8">Login menggunakan akun Google untuk mengakses fitur eksklusif AWIMEDAN.</p>
+                <button @click="loginGoogle()" class="w-full flex items-center justify-center space-x-3 bg-white text-black py-3 rounded-lg font-bold hover:bg-gray-200 transition">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-6 h-6">
+                    <span>Masuk dengan Google</span>
+                </button>
+            </div>
+        </div>
+
+        <div x-show="currentPage === 'home'" x-transition class="container mx-auto px-4 text-center py-20">
+            <h1 class="text-6xl font-bold mb-6 italic">AWIMEDAN <span class="gradient-text">PREMIUM</span></h1>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-10 text-lg">Platform penyedia script & tools Car Parking Multiplayer paling aman dan terpercaya.</p>
+            <div class="flex justify-center space-x-4">
+                <button @click="currentPage = 'store'" class="btn-premium px-8 py-3">LIHAT TOKO</button>
+                <button @click="currentPage = 'tools'" class="bg-white/10 px-8 py-3 rounded-lg font-bold">AKSES TOOLS</button>
+            </div>
+        </div>
+
+        <div x-show="currentPage === 'store'" x-transition class="container mx-auto px-4 py-10">
+            <h2 class="text-3xl font-bold mb-8 text-center"><span class="gradient-text">SCRIPT TERLARIS</span></h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <template x-for="p in products" :key="p.name">
+                    <div class="card-glass p-3 product-card flex flex-col justify-between">
+                        <img :src="p.img" class="w-full rounded-lg mb-3 h-32 object-cover">
+                        <h3 class="text-sm font-bold mb-1" x-text="p.name"></h3>
+                        <p class="text-purple-400 font-bold text-sm mb-3" x-text="'Rp ' + p.price"></p>
+                        <button @click="beliProduk(p.name)" class="w-full bg-white text-black py-2 rounded font-bold text-xs hover:bg-purple-500 hover:text-white transition">BELI VIA WA</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="currentPage === 'tools'" x-transition class="container mx-auto px-4 py-10">
+            <div class="max-w-md mx-auto">
+                <div class="text-center mb-8">
+                    <i class="fas fa-tools text-5xl text-purple-500 mb-4"></i>
+                    <h2 class="text-3xl font-bold gradient-text">TOOLS PANEL</h2>
+                </div>
+
+                <div x-show="!cpmUser.isLoggedIn" class="card-glass p-8 space-y-4">
+                    <div class="flex justify-center mb-4">
+                        <div class="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center border border-purple-500">
+                            <i class="fas fa-user-shield text-2xl text-purple-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-gray-400 mb-6">Masukkan kredensial akun CPM untuk menggunakan fitur Suntik Rank/Akun.</p>
+                    
+                    <select x-model="cpmForm.gameId" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg">
+                        <option value="">-- Pilih Versi Game --</option>
+                        <option value="1">CPM 1 (Original)</option>
+                        <option value="2">CPM 2 (Beta/New)</option>
+                    </select>
+                    <input type="email" x-model="cpmForm.email" placeholder="Email Akun CPM" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg outline-none">
+                    <input type="password" x-model="cpmForm.password" placeholder="Password Akun CPM" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg outline-none">
+                    <input type="text" x-model="cpmForm.key" placeholder="Access Key Premium" class="w-full bg-black/50 border border-white/10 p-3 rounded-lg outline-none">
+                    
+                    <button @click="handleCpmLogin" :disabled="loading" class="w-full btn-premium py-3 flex items-center justify-center space-x-2">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span x-show="!loading">LOGIN INJECTOR</span>
+                        <i x-show="loading" class="fas fa-spinner animate-spin"></i>
+                    </button>
+                    <p class="text-red-400 text-xs text-center" x-text="message"></p>
+                </div>
+
+                <div x-show="cpmUser.isLoggedIn" class="space-y-4">
+                    <div class="card-glass p-4 border-green-500/30 flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-sm font-bold" x-text="cpmUser.email"></span>
+                        </div>
+                        <button @click="logoutCpm" class="text-red-400 text-xs font-bold uppercase tracking-widest">Logout</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-3">
+                        <button @click="setKingRank" class="card-glass p-4 hover:bg-purple-600/20 text-left flex items-center transition">
+                            <i class="fas fa-crown text-xl text-yellow-500 mr-4"></i>
+                            <div><h4 class="font-bold text-sm">Inject King Rank</h4><p class="text-[10px] text-gray-500">Set 10B Rating & Rank King</p></div>
+                        </button>
+
+                        <button @click="changeEmailPrompt" class="card-glass p-4 hover:bg-blue-600/20 text-left flex items-center transition">
+                            <i class="fas fa-envelope text-xl text-blue-400 mr-4"></i>
+                            <div><h4 class="font-bold text-sm">Ubah Email Akun</h4><p class="text-[10px] text-gray-500">Ganti email login CPM</p></div>
+                        </button>
+
+                        <button @click="changePasswordPrompt" class="card-glass p-4 hover:bg-red-600/20 text-left flex items-center transition">
+                            <i class="fas fa-key text-xl text-red-400 mr-4"></i>
+                            <div><h4 class="font-bold text-sm">Ubah Password</h4><p class="text-[10px] text-gray-500">Reset kata sandi instan</p></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="py-10 border-t border-white/10 text-center text-gray-500 text-xs">
+        <p>&copy; 2026 AWIMEDAN-GARAGE. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function app() {
+            return {
+                currentPage: 'home',
+                loading: false,
+                message: '',
+                user: null, // Google User
+                cpmUser: { isLoggedIn: false, email: '', token: '', gameData: null },
+                cpmForm: { gameId: '', email: '', password: '', key: '' },
+                
+                // --- CONFIG ---
+                firebaseConfig: {
+                    apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
+                    authDomain: "cpmapikey.firebaseapp.com",
+                    databaseURL: "https://cpmapikey-default-rtdb.asia-southeast1.firebasedatabase.app",
+                    projectId: "cpmapikey",
+                    storageBucket: "cpmapikey.firebasestorage.app",
+                    messagingSenderId: "372965414639",
+                    appId: "1:372965414639:web:e79bb42a252336cab52d1a"
+                },
+                gameApis: {
+                    "1": { 
+                        name: "CPM 1", 
+                        api: "AIzaSyBW1ZbMiUeDZHYUO2bY8Bfnf5rRgrQGPTM",
+                        rankUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/SetUserRating4"
+                    },
+                    "2": { 
+                        name: "CPM 2", 
+                        api: "AIzaSyCQDz9rgjgmvmFkvVfmvr2-7fT4tfrzRRQ",
+                        rankUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/SetUserRating17_AppI"
+                    }
+                },
+                botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
+                adminChatId: "6095762919",
+
+                products: [
+                    { name: 'Script All In One CPM 1', price: '100.000', img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
+                    { name: 'Script Wallhack', price: '20.000', img: 'images/Script Wallhack.jpg' },
+                    { name: 'Race 3 Second', price: '25.000', img: 'images/Script Race 3sec.jpg' },
+                    { name: 'Timing Kuda Permanent', price: '30.000', img: 'images/Script Timing Kuda Permanent.jpg' },
+                    { name: 'Unlock Premium Features', price: '20.000', img: 'images/Unlock Premium Features.jpg' },
+                    { name: 'Joki Rank King', price: '15.000', img: 'images/achievement.jpg' }
+                ],
+
+                init() {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(this.firebaseConfig);
+                    }
+                    
+                    // Listen to Google Login State
+                    firebase.auth().onAuthStateChanged((user) => {
+                        this.user = user;
+                        if (user && this.currentPage === 'login') {
+                            this.currentPage = 'home';
+                        }
+                    });
+                },
+
+                // --- GOOGLE LOGIN ---
+                async loginGoogle() {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    try {
+                        await firebase.auth().signInWithPopup(provider);
+                    } catch (e) {
+                        alert("Gagal login Google: " + e.message);
+                    }
+                },
+
+                async logoutGoogle() {
+                    await firebase.auth().signOut();
+                    this.user = null;
+                },
+
+                // --- CPM TOOLS LOGIC ---
+                async handleCpmLogin() {
+                    if (!this.cpmForm.gameId || !this.cpmForm.key) {
+                        this.message = "Lengkapi form login injector!";
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        // Cek Key di DB
+                        const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
+                        if (!snap.val() || snap.val().status !== 'active') throw new Error("Key Salah atau Expired!");
+
+                        const game = this.gameApis[this.cpmForm.gameId];
+                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${game.api}`, {
+                            method: 'POST',
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email: this.cpmForm.email, password: this.cpmForm.password, returnSecureToken: true })
+                        });
+                        const data = await res.json();
+
+                        if (data.idToken) {
+                            this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: game };
+                            this.logToTelegram(`🛠️ **Injector Login**\nGame: ${game.name}\nEmail: \`${data.email}\``);
+                            this.message = "";
+                        } else { throw new Error("Akun CPM tidak ditemukan!"); }
+                    } catch (e) { this.message = e.message; }
+                    this.loading = false;
+                },
+
+                async setKingRank() {
+                    if(!confirm("Suntik King Rank? Akun game harus tertutup.")) return;
+                    this.loading = true;
+                    try {
+                        await fetch(this.cpmUser.gameData.rankUrl, {
+                            method: 'POST',
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ "auth": this.cpmUser.token, "rating": 1000000000 })
+                        });
+                        alert("Berhasil! Silakan cek game.");
+                    } catch (e) { alert("Gagal inject!"); }
+                    this.loading = false;
+                },
+
+                async changePasswordPrompt() {
+                    const np = prompt("Masukkan Password Baru (Min. 6 Karakter):");
+                    if(!np || np.length < 6) return;
+                    this.loading = true;
+                    try {
+                        await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+                            method: 'POST',
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
+                        });
+                        alert("Password Sukses Diganti!");
+                    } catch (e) { alert("Gagal ganti password!"); }
+                    this.loading = false;
+                },
+
+                async changeEmailPrompt() {
+                    const ne = prompt("Masukkan Email Baru:");
+                    if(!ne || !ne.includes("@")) return;
+                    this.loading = true;
+                    try {
+                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+                            method: 'POST',
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true })
+                        });
+                        const data = await res.json();
+                        if(data.email) {
+                            alert("Email Sukses Diganti!");
+                            this.cpmUser.email = data.email;
+                        }
+                    } catch (e) { alert("Gagal ganti email!"); }
+                    this.loading = false;
+                },
+
+                logoutCpm() { this.cpmUser = { isLoggedIn: false }; },
+                beliProduk(nama) { window.open(`https://wa.me/6281330750863?text=Halo Admin Awi, saya mau beli ${encodeURIComponent(nama)}`, '_blank'); },
+                logToTelegram(txt) {
+                    fetch(`https://api.telegram.org/bot${this.botToken}/sendMessage`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ chat_id: this.adminChatId, text: txt, parse_mode: "Markdown" })
+                    }).catch(() => {});
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>
