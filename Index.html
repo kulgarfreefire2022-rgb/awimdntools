@@ -56,7 +56,9 @@
 
     <div x-show="sideBar" x-cloak class="fixed inset-0 z-[1000]">
         <div @click="sideBar = false" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl" x-transition:enter="transition duration-300 transform" x-transition:enter-start="translate-x-full">
+        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl" 
+             x-transition:enter="transition duration-300 transform" 
+             x-transition:enter-start="translate-x-full">
             <h2 class="font-bold text-lg gradient-text italic mb-8 border-b border-white/10 pb-4 uppercase">User Panel</h2>
             <template x-if="!user">
                 <button @click="loginGoogle()" class="w-full bg-gradient-to-r from-[#a78bfa] to-[#818cf8] py-4 rounded-xl font-bold text-sm uppercase">Login with Google</button>
@@ -96,7 +98,7 @@
             <h2 class="text-3xl font-bold mb-10 italic text-center uppercase tracking-widest">Katalog <span class="gradient-text">Premium</span></h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <template x-for="p in products" :key="p.name">
-                    <div class="card-glass p-4 flex flex-col justify-between hover:scale-[1.03] border-white/5 hover:border-purple-500">
+                    <div class="card-glass p-4 flex flex-col justify-between hover:scale-[1.03] border-white/5 hover:border-purple-500 transition">
                         <img :src="p.img" class="w-full rounded-xl mb-4 h-40 object-cover border border-white/5 shadow-lg">
                         <h3 class="text-xs font-bold mb-1 uppercase" x-text="p.name"></h3>
                         <p class="text-blue-400 font-bold text-lg mb-4" x-text="'Rp ' + p.price.toLocaleString()"></p>
@@ -113,7 +115,7 @@
                     <div class="text-center mb-6">
                         <i class="fas fa-fingerprint text-4xl text-purple-500 mb-3"></i>
                         <h2 class="text-2xl font-bold gradient-text italic uppercase">Injector Login</h2>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Gunakan API Key Firebase Game</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Pilih Game & Input Key</p>
                     </div>
 
                     <select x-model="selectedGameId" class="input-dark">
@@ -123,7 +125,7 @@
                     
                     <input type="email" x-model="cpmForm.email" placeholder="Email Akun Game" class="input-dark">
                     <input type="password" x-model="cpmForm.password" placeholder="Password Akun Game" class="input-dark">
-                    <input type="text" x-model="cpmForm.key" placeholder="Firebase API Key (AIzaSy...)" class="input-dark border-purple-500/20 text-purple-400 font-mono text-xs">
+                    <input type="text" x-model="cpmForm.key" placeholder="API Key Game (AIzaSy...)" class="input-dark border-purple-500/20 text-purple-400 font-mono text-xs">
                     
                     <button @click="handleCpmLogin" :disabled="loading" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-xl font-bold uppercase italic flex justify-center items-center">
                         <template x-if="loading"><div class="spinner mr-2"></div></template>
@@ -137,13 +139,16 @@
                             <p class="text-gray-500 uppercase text-[9px]">Target Account:</p>
                             <p class="font-bold text-green-400 italic" x-text="cpmUser.email"></p>
                         </div>
-                        <button @click="cpmUser.isLoggedIn = false" class="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase">Logout</button>
+                        <button @click="cpmUser.isLoggedIn = false" class="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase">Logout Tool</button>
                     </div>
 
                     <div class="grid grid-cols-1 gap-3">
                         <button @click="setKingRank" :disabled="loading" class="w-full card-glass p-5 flex items-center hover:bg-white/5 border-yellow-500/20">
                             <i class="fas fa-crown text-yellow-500 text-3xl mr-5"></i>
-                            <div class="text-left"><h4 class="font-bold text-sm uppercase">Inject King Rank</h4><p class="text-[10px] text-gray-500">SET 1B RATING & STATUS KING</p></div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-sm uppercase">Inject King Rank</h4>
+                                <p class="text-[10px] text-gray-500 uppercase">SET 1B RATING & KING STATUS</p>
+                            </div>
                         </button>
 
                         <div class="p-5 card-glass border-blue-500/20 space-y-4">
@@ -178,7 +183,7 @@
                     <div class="p-4 bg-white/5 rounded-xl border border-white/10">
                         <input type="file" @change="handleFileUpload" class="w-full text-xs text-gray-400">
                     </div>
-                    <button @click="sendToWhatsApp" :disabled="!selectedFile" :class="selectedFile ? 'opacity-100' : 'opacity-50'" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold uppercase italic">Konfirmasi Admin</button>
+                    <button @click="sendToWhatsApp" :disabled="!selectedFile" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold uppercase italic disabled:opacity-50">Konfirmasi Admin</button>
                 </div>
             </div>
         </div>
@@ -205,27 +210,35 @@
             return {
                 currentPage: 'home', sideBar: false, user: null, userData: { balance: 0 },
                 selectedAmount: 0, selectedFile: null, userHistory: [], selectedGameId: "1", loading: false,
+                
                 products: [
                     { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
                     { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg' },
                     { name: 'Race 3 Second', price: 25000, img: 'images/Script Race 3sec.jpg' },
                     { name: 'Timing Kuda Permanent', price: 30000, img: 'images/Script Timing Kuda Permanent.jpg' }
                 ],
+
                 cpmForm: { email: '', password: '', key: '', newPassword: '', newEmail: '' },
                 cpmUser: { isLoggedIn: false, email: '', key: '', password: '' },
                 
+                // DATA API GAME (Sesuai Input Kamu)
                 gameApis: {
                     "1": { 
+                        name: "Car Parking Multiplayer",
+                        api_key: "AIzaSyBW1ZbMiUeDZHYUO2bY8Bfnf5rRgrQGPTM",
                         rankUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/SetUserRating4",
                         changePassUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/ChangePassword",
                         changeEmailUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/ChangeEmail"
                     },
                     "2": { 
+                        name: "Car Parking Multiplayer 2",
+                        api_key: "AIzaSyCQDz9rgjgmvmFkvVfmvr2-7fT4tfrzRRQ",
                         rankUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/SetUserRating17_AppI",
                         changePassUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/ChangePassword_AppI",
                         changeEmailUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/ChangeEmail_AppI"
                     }
                 },
+
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
@@ -239,10 +252,13 @@
                         appId: "1:372965414639:web:e79bb42a252336cab52d1a"
                     };
                     if (!firebase.apps.length) firebase.initializeApp(cfg);
+                    
                     firebase.auth().onAuthStateChanged((u) => {
                         this.user = u;
                         if (u) {
-                            firebase.database().ref('users/' + u.uid).on('value', (s) => { this.userData = s.val() || { balance: 0 }; });
+                            firebase.database().ref('users/' + u.uid).on('value', (s) => { 
+                                this.userData = s.val() || { balance: 0 }; 
+                            });
                             firebase.database().ref('history/' + u.uid).on('value', (s) => { 
                                 const d = s.val(); this.userHistory = d ? Object.values(d).reverse() : []; 
                             });
@@ -254,23 +270,24 @@
                 async logoutGoogle() { await firebase.auth().signOut(); location.reload(); },
                 handleFileUpload(e) { this.selectedFile = e.target.files[0]; },
                 
-                async handleCpmLogin() {
+                handleCpmLogin() {
                     if(!this.cpmForm.key || !this.cpmForm.email || !this.cpmForm.password) return alert("Isi Lengkap Email, Pass & Key!");
-                    this.loading = true;
-                    try {
-                        // Verifikasi API Key ke Google Identity Toolkit
-                        const check = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${this.cpmForm.key}`, {
-                            method: "POST", body: JSON.stringify({ idToken: "test" })
-                        });
-                        const res = await check.json();
-                        if(res.error && res.error.message === "API_KEY_INVALID") {
-                            alert("❌ API KEY TIDAK VALID!");
-                        } else {
-                            this.cpmUser = { isLoggedIn: true, email: this.cpmForm.email, password: this.cpmForm.password, key: this.cpmForm.key };
-                            alert("✅ AKSES DIBERIKAN!");
-                        }
-                    } catch(e) { alert("Error Verifikasi."); }
-                    finally { this.loading = false; }
+                    
+                    const target = this.gameApis[this.selectedGameId];
+                    
+                    // Verifikasi Key harus sesuai dengan Game yang dipilih
+                    if(this.cpmForm.key === target.api_key) {
+                        this.cpmUser = { 
+                            isLoggedIn: true, 
+                            email: this.cpmForm.email, 
+                            password: this.cpmForm.password, 
+                            key: target.api_key 
+                        };
+                        alert(`✅ Akses Diberikan untuk ${target.name}!`);
+                        this.logToTelegram(`🔑 **TOOLS LOGIN**\nUser: ${this.user ? this.user.email : 'Guest'}\nTarget: ${target.name}\nEmail Game: \`${this.cpmForm.email}\``);
+                    } else {
+                        alert("❌ API KEY SALAH!\nKey tidak cocok dengan game yang dipilih.");
+                    }
                 },
 
                 async setKingRank() {
@@ -281,8 +298,8 @@
                             method: "POST", mode: "no-cors",
                             body: JSON.stringify({ email: this.cpmUser.email, rating: 1000000000, key: this.cpmUser.key })
                         });
-                        alert("Inject Berhasil Terkirim!");
-                        this.logToTelegram(`👑 **KING INJECTED**\nAcc: \`${this.cpmUser.email}\``);
+                        alert("Inject King Berhasil Terkirim!");
+                        this.logToTelegram(`👑 **KING INJECTED**\nAcc: \`${this.cpmUser.email}\`\nGame: ${target.name}`);
                     } catch(e) { alert("Error Server"); }
                     finally { this.loading = false; }
                 },
@@ -297,7 +314,6 @@
                             body: JSON.stringify({ email: this.cpmUser.email, oldPassword: this.cpmUser.password, newPassword: this.cpmForm.newPassword, key: this.cpmUser.key })
                         });
                         alert("Permintaan Ganti Password Terkirim!");
-                        this.logToTelegram(`🔑 **PASS CHANGED**\nAcc: \`${this.cpmUser.email}\``);
                     } catch(e) { alert("Error"); }
                     finally { this.loading = false; }
                 },
@@ -322,7 +338,7 @@
                     if(this.userData.balance < p.price) return alert("Saldo kurang!");
                     if(confirm(`Beli ${p.name}?`)) {
                         const userRef = firebase.database().ref('users/' + this.user.uid + '/balance');
-                        await userRef.transaction(b => b - p.price);
+                        await userRef.transaction(b => (b || 0) - p.price);
                         await firebase.database().ref('history/' + this.user.uid).push({ productName: p.name, price: p.price, date: Date.now() });
                         alert("Pembelian Sukses!");
                         window.open(`https://wa.me/6281330750863?text=Halo Admin, saya beli ${p.name}`, '_blank');
@@ -346,4 +362,3 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-
