@@ -15,15 +15,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         * { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
         body { background: #050505; color: #e5e7eb; overflow-x: hidden; padding-top: 70px; }
-        
         .gradient-text { background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .card-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 15px; }
         .sidebar-glass { background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(20px); border-left: 1px solid rgba(168, 85, 247, 0.3); z-index: 1000; }
-        
         .top-navbar { background-color: #080808; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .crown-logo { background: linear-gradient(135deg, #818cf8, #a78bfa); box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
-        
-        /* Penting agar elemen tidak berkedip saat loading */
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -37,13 +33,11 @@
                 </div>
                 <span class="text-xl text-[#818cf8] font-bold uppercase tracking-tight">AWIMEDAN</span>
             </div>
-
             <div class="hidden md:flex items-center space-x-8">
                 <span @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Beranda</span>
                 <span @click="currentPage = 'store'" :class="currentPage === 'store' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Store</span>
                 <span @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'" class="cursor-pointer text-sm font-medium pb-1">Tools</span>
             </div>
-
             <div class="flex items-center space-x-4">
                 <template x-if="!user">
                     <button @click="loginGoogle()" class="bg-gradient-to-r from-[#a78bfa] to-[#818cf8] text-white px-6 py-2 rounded-xl font-bold text-sm shadow-md transition transform hover:scale-105">Masuk</button>
@@ -61,8 +55,7 @@
 
     <div x-show="sideBar" x-cloak class="fixed inset-0 z-[1000]">
         <div @click="sideBar = false" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl" 
-             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0">
+        <div class="absolute right-0 top-0 h-full w-72 sidebar-glass p-6 shadow-2xl" x-transition:enter="transition duration-300 ease-out transform" x-transition:enter-start="translate-x-full">
             <h2 class="font-bold text-lg gradient-text italic mb-8 border-b border-white/10 pb-4 uppercase">Account Panel</h2>
             <template x-if="user">
                 <div class="space-y-6">
@@ -72,10 +65,6 @@
                             <p class="font-bold text-sm truncate" x-text="user.displayName"></p>
                             <p class="text-[10px] text-gray-400 truncate" x-text="user.email"></p>
                         </div>
-                    </div>
-                    <div class="p-4 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-xl border border-white/10 text-center">
-                        <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Saldo Anda</p>
-                        <p class="text-xl font-bold text-white" x-text="'Rp ' + (userData.balance || 0).toLocaleString()"></p>
                     </div>
                     <nav class="space-y-1">
                         <button @click="currentPage = 'topup'; sideBar = false" class="w-full text-left p-3 hover:bg-white/5 rounded-lg flex items-center text-sm font-semibold"><i class="fas fa-wallet w-8 text-green-400"></i> Top Up Saldo</button>
@@ -102,7 +91,7 @@
             <h2 class="text-3xl font-bold mb-10 italic text-center uppercase tracking-widest">Katalog <span class="gradient-text">Script</span></h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <template x-for="p in products" :key="p.name">
-                    <div class="card-glass p-4 flex flex-col justify-between hover:border-purple-500 transform hover:-translate-y-1">
+                    <div class="card-glass p-4 flex flex-col justify-between hover:border-purple-500">
                         <img :src="p.img" class="w-full rounded-lg mb-4 h-40 object-cover border border-white/5">
                         <h3 class="text-sm font-bold mb-1" x-text="p.name"></h3>
                         <p class="text-purple-400 font-bold text-lg mb-4" x-text="'Rp ' + p.price.toLocaleString()"></p>
@@ -113,65 +102,53 @@
         </div>
 
         <div x-show="currentPage === 'topup'" x-cloak class="container mx-auto px-4 py-10">
-            <div class="max-w-md mx-auto card-glass p-8 shadow-2xl border-green-500/20">
+            <div class="max-w-md mx-auto card-glass p-8 border-green-500/20">
                 <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-qrcode text-3xl text-green-500"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold gradient-text italic uppercase">Metode Top Up QRIS</h2>
-                    <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic text-center">Silakan pilih nominal saldo</p>
+                    <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-qrcode text-3xl text-green-500"></i></div>
+                    <h2 class="text-2xl font-bold gradient-text italic uppercase">Top Up Saldo</h2>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3 mb-8">
                     <template x-for="amt in [20000, 50000, 100000, 150000]" :key="amt">
-                        <button @click="selectedAmount = amt" 
-                                :class="selectedAmount === amt ? 'border-green-500 bg-green-500/20 text-white' : 'border-white/10 bg-white/5 text-gray-400'"
-                                class="p-4 border rounded-xl font-bold transition-all text-sm">
-                            Rp <span x-text="amt.toLocaleString()"></span>
-                        </button>
+                        <button @click="selectedAmount = amt" :class="selectedAmount === amt ? 'border-green-500 bg-green-500/20 text-white' : 'border-white/10 bg-white/5 text-gray-400'" class="p-4 border rounded-xl font-bold text-sm">Rp <span x-text="amt.toLocaleString()"></span></button>
                     </template>
                 </div>
-
                 <div x-show="selectedAmount > 0" x-transition class="mb-8 p-4 bg-white rounded-2xl border-4 border-dashed border-green-500/30">
-                    <p class="text-black text-[10px] font-bold text-center mb-2 uppercase italic">Scan QRIS AWIMEDAN STORE</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=AWIMEDAN-PAYMENT" 
-                         class="w-full aspect-square object-contain rounded-lg" alt="QRIS Payment">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=AWIMEDAN-PAYMENT" class="w-full aspect-square object-contain rounded-lg">
                     <p class="text-center text-black font-black mt-2 text-lg italic" x-text="'TOTAL: Rp ' + selectedAmount.toLocaleString()"></p>
                 </div>
-
                 <div x-show="selectedAmount > 0" class="space-y-4">
                     <div class="p-4 bg-white/5 rounded-xl border border-white/10">
-                        <label class="block text-xs text-gray-400 uppercase font-bold mb-3 italic">Upload Bukti Transfer:</label>
-                        <input type="file" @change="handleFileUpload" accept="image/*" class="w-full text-xs text-gray-400 cursor-pointer">
+                        <input type="file" @change="handleFileUpload" accept="image/*" class="w-full text-xs text-gray-400">
                     </div>
-                    <button @click="sendToWhatsApp" :disabled="!selectedFile"
-                            :class="selectedFile ? 'opacity-100' : 'opacity-50 cursor-not-allowed'"
-                            class="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold flex items-center justify-center space-x-2">
-                        <i class="fab fa-whatsapp text-xl"></i>
-                        <span>KONFIRMASI KE ADMIN</span>
-                    </button>
+                    <button @click="sendToWhatsApp" :disabled="!selectedFile" :class="selectedFile ? 'opacity-100' : 'opacity-50'" class="w-full bg-green-500 text-white py-4 rounded-xl font-bold">KONFIRMASI KE ADMIN</button>
                 </div>
             </div>
         </div>
 
         <div x-show="currentPage === 'tools'" x-cloak class="container mx-auto px-4 py-10">
             <div class="max-w-md mx-auto">
-                <div x-show="!cpmUser.isLoggedIn" class="card-glass p-8 space-y-4 border-purple-500/30">
-                    <h2 class="text-2xl font-bold text-center gradient-text italic mb-6">INJECTOR LOGIN</h2>
-                    <input type="email" x-model="cpmForm.email" placeholder="Email Akun CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg outline-none text-sm">
-                    <input type="password" x-model="cpmForm.password" placeholder="Password Akun CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg outline-none text-sm">
-                    <input type="text" x-model="cpmForm.key" placeholder="Access Key Premium" class="w-full bg-black border border-white/10 p-3 rounded-lg outline-none text-sm font-mono text-purple-400">
-                    <button @click="handleCpmLogin" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-xl font-bold transition active:scale-95">VERIFIKASI & MASUK</button>
+                <div x-show="!cpmUser.isLoggedIn" class="card-glass p-8 space-y-4">
+                    <h2 class="text-2xl font-bold text-center gradient-text italic mb-6 uppercase">Injector Login</h2>
+                    <input type="email" x-model="cpmForm.email" placeholder="Email CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm">
+                    <input type="password" x-model="cpmForm.password" placeholder="Password CPM" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm">
+                    <input type="text" x-model="cpmForm.key" placeholder="Premium Key" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm text-purple-400">
+                    <button @click="handleCpmLogin" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-xl font-bold">MASUK PANEL</button>
                 </div>
-
-                <div x-show="cpmUser.isLoggedIn" class="space-y-4" x-cloak>
-                    <div class="card-glass p-4 border-green-500/30 flex justify-between items-center shadow-lg">
-                        <div class="text-sm">Akun: <b x-text="cpmUser.email" class="text-green-400"></b></div>
-                        <button @click="cpmUser.isLoggedIn = false" class="bg-red-500/20 text-red-500 px-3 py-1 rounded text-[10px] font-bold">LOGOUT</button>
+                <div x-show="cpmUser.isLoggedIn" class="space-y-4">
+                    <div class="card-glass p-4 border-green-500/30 flex justify-between items-center">
+                        <span class="text-xs font-bold text-green-400" x-text="cpmUser.email"></span>
+                        <button @click="cpmUser.isLoggedIn = false" class="text-red-500 text-[10px] font-bold">LOGOUT</button>
                     </div>
-                    <button @click="setKingRank" class="w-full card-glass p-5 hover:bg-purple-600/20 text-left flex items-center group transition-all">
-                        <i class="fas fa-crown text-3xl text-yellow-500 mr-5 group-hover:scale-110 transition"></i>
-                        <div><h4 class="font-bold text-sm italic uppercase text-white">Inject King Rank</h4><p class="text-[10px] text-gray-500 uppercase">Inject 1B Rating + King Status</p></div>
+                    <div class="p-4 card-glass border-white/10">
+                        <label class="text-[10px] text-gray-400 font-bold uppercase mb-2 block">Pilih Target Game:</label>
+                        <select x-model="selectedGameId" class="w-full bg-black border border-white/10 p-3 rounded-lg text-sm text-white">
+                            <option value="1">Car Parking Multiplayer 1</option>
+                            <option value="2">Car Parking Multiplayer 2</option>
+                        </select>
+                    </div>
+                    <button @click="setKingRank" class="w-full card-glass p-5 flex items-center hover:bg-purple-600/10">
+                        <i class="fas fa-crown text-yellow-500 text-3xl mr-5"></i>
+                        <div class="text-left"><h4 class="font-bold text-sm uppercase">Inject King Rank</h4><p class="text-[10px] text-gray-500">Inject 1B Rating Status</p></div>
                     </button>
                 </div>
             </div>
@@ -182,10 +159,7 @@
             <div class="max-w-2xl mx-auto space-y-4">
                 <template x-for="h in userHistory" :key="h.date">
                     <div class="card-glass p-5 flex justify-between items-center border-l-4 border-l-purple-500">
-                        <div>
-                            <p class="font-bold text-white uppercase text-sm" x-text="h.productName"></p>
-                            <p class="text-[10px] text-gray-500" x-text="new Date(h.date).toLocaleString('id-ID')"></p>
-                        </div>
+                        <div><p class="font-bold text-white text-sm" x-text="h.productName"></p><p class="text-[10px] text-gray-500" x-text="new Date(h.date).toLocaleString()"></p></div>
                         <p class="text-red-400 font-bold text-sm" x-text="'- Rp ' + h.price.toLocaleString()"></p>
                     </div>
                 </template>
@@ -197,7 +171,7 @@
         function app() {
             return {
                 currentPage: 'home', sideBar: false, user: null, userData: { balance: 0 },
-                selectedAmount: 0, selectedFile: null, userHistory: [],
+                selectedAmount: 0, selectedFile: null, userHistory: [], selectedGameId: "1",
                 products: [
                     { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
                     { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg' },
@@ -206,11 +180,15 @@
                 ],
                 cpmForm: { email: '', password: '', key: '' },
                 cpmUser: { isLoggedIn: false, email: '' },
+                gameApis: {
+                    "1": { name: "CPM 1", api: "AIzaSyBW1ZbMiUeDZHYUO2bY8Bfnf5rRgrQGPTM", rankUrl: "https://us-central1-cp-multiplayer.cloudfunctions.net/SetUserRating4" },
+                    "2": { name: "CPM 2", api: "AIzaSyCQDz9rgjgmvmFkvVfmvr2-7fT4tfrzRRQ", rankUrl: "https://us-central1-cpm-2-7cea1.cloudfunctions.net/SetUserRating17_AppI" }
+                },
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
                 init() {
-                    const config = {
+                    const cfg = {
                         apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
                         authDomain: "cpmapikey.firebaseapp.com",
                         databaseURL: "https://cpmapikey-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -218,7 +196,7 @@
                         storageBucket: "cpmapikey.firebasestorage.app",
                         appId: "1:372965414639:web:e79bb42a252336cab52d1a"
                     };
-                    if (!firebase.apps.length) firebase.initializeApp(config);
+                    if (!firebase.apps.length) firebase.initializeApp(cfg);
                     firebase.auth().onAuthStateChanged((u) => {
                         this.user = u;
                         if (u) {
@@ -230,56 +208,38 @@
                     });
                 },
 
-                async loginGoogle() {
-                    const p = new firebase.auth.GoogleAuthProvider();
-                    await firebase.auth().signInWithPopup(p);
-                },
-
+                async loginGoogle() { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); },
                 async logoutGoogle() { await firebase.auth().signOut(); location.reload(); },
-
-                handleFileUpload(e) { 
-                    this.selectedFile = e.target.files[0]; 
-                    if(this.selectedFile) this.logToTelegram(`📸 **UPLOAD BUKTI**\nUser: \`${this.user.email}\` sedang upload.`);
-                },
-
+                handleFileUpload(e) { this.selectedFile = e.target.files[0]; },
                 sendToWhatsApp() {
-                    if (!this.selectedFile) return alert("Upload bukti transfer dulu!");
-                    const waNum = "6281330750863";
-                    const msg = `Halo Admin AWIMEDAN,\n\nSaya konfirmasi Top Up Saldo.\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}\n\n(BUKTI TRANSFER AKAN SAYA LAMPIRKAN DI BAWAH)`;
-                    
-                    alert("PENTING: WhatsApp akan terbuka. Silakan LAMPIRKAN (Attach) kembali foto bukti transfer Anda di chat Admin.");
-                    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
-                    this.logToTelegram(`📲 **KONFIRMASI WA**\nUser: \`${this.user.email}\` (Rp ${this.selectedAmount.toLocaleString()})`);
+                    const msg = `Halo Admin AWIMEDAN, Konfirmasi TopUp.\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
+                    alert("PENTING: Lampirkan bukti di chat WA nanti!");
+                    window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
                 },
-
                 async beliProduk(name) {
-                    if (!this.user) return alert("Silakan Login!");
                     const p = this.products.find(x => x.name === name);
-                    if (this.userData.balance < p.price) {
-                        alert("Saldo tidak cukup!");
-                        this.currentPage = 'topup';
-                        return;
-                    }
+                    if (this.userData.balance < p.price) return alert("Saldo kurang!");
                     if (confirm(`Beli ${name}?`)) {
                         await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - p.price);
                         await firebase.database().ref('history/' + this.user.uid).push({ productName: name, price: p.price, date: Date.now() });
-                        alert("Pembelian Berhasil!");
-                        window.open(`https://wa.me/6281330750863?text=Saya%20beli%20${name}`, '_blank');
+                        alert("Berhasil!");
+                        window.open(`https://wa.me/6281330750863?text=Beli%20${name}`, '_blank');
                     }
                 },
-
                 async handleCpmLogin() {
-                    if(!this.cpmForm.key) return alert("Key Premium dibutuhkan!");
+                    if(!this.cpmForm.key) return alert("Isi Key!");
                     this.cpmUser = { isLoggedIn: true, email: this.cpmForm.email };
                 },
-
-                async setKingRank() { alert("Fitur diproses!"); },
-                
-                logToTelegram(t) {
-                    fetch(`https://api.telegram.org/bot${this.botToken}/sendMessage`, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ chat_id: this.adminChatId, text: t, parse_mode: "Markdown" })
-                    });
+                async setKingRank() {
+                    const target = this.gameApis[this.selectedGameId];
+                    try {
+                        const res = await fetch(target.rankUrl, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email: this.cpmUser.email, rating: 1000000000, key: target.api })
+                        });
+                        if(res.ok) alert(`Berhasil Inject King ke ${target.name}!`);
+                        else alert("Gagal inject.");
+                    } catch(e) { alert("Error Server Game"); }
                 }
             }
         }
