@@ -703,5 +703,21 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+    // Disable Klik Kanan
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // Disable tombol F12 dan kombinasi View Source (Ctrl+U)
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123 || 
+           (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) || 
+           (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) || 
+           (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) || 
+           (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+            return false;
+        }
+    }
+</script>
+
 </body>
 </html>
