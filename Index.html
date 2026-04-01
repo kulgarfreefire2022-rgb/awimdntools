@@ -51,11 +51,10 @@
         
         [x-cloak] { display: none !important; }
 
-        /* CUSTOM CARD SIZE FOR 3264x1836 BANNERS (16:9 Aspect Ratio) */
         .banner-container {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* Rasio 16:9 agar banner tidak terpotong */
+            padding-top: 56.25%; 
             overflow: hidden;
             border-radius: 8px;
             background: #111;
@@ -166,7 +165,7 @@
                 
                 <div class="flex flex-wrap justify-center gap-4 mt-10">
                     <button @click="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})" class="btn-primary px-10 py-4 rounded-lg font-black italic flex items-center">
-                        <i class="fas fa-shopping-cart mr-2"></i> LIHAT TOOLS
+                        <i class="fas fa-shopping-cart mr-2"></i> LIHAT TOKO
                     </button>
                     <button @click="currentPage = 'topup'" class="btn-secondary px-10 py-4 rounded-lg font-black italic">
                         TOP UP SALDO
@@ -352,23 +351,22 @@
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
+                // GANTI LINK DI BAWAH INI DENGAN LINK RAW GITHUB ANDA
                 products: [
-                    { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg' },
-                    { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg' },
-                    { name: 'Script Race 3 Second', price: 25000, img: 'images/Script Race 3sec.jpg' },
-                    { name: 'Script Timing Kuda Permanent + Tutorial', price: 30000, img: 'images/Script Timing Kuda Permanent.jpg' },
-                    { name: 'Timing Kuda Permanent', price: 15000, img: 'images/Script Timing Kuda Permanent.jpg' },
-                    { name: 'Script 8000 / 8K Tune Up', price: 30000, img: 'images/Script 8000 Tune Up.jpg' },
-                    { name: 'Script Unlimited Tires 100% & 0%', price: 20000, img: 'images/Script Unlimited Tires.jpg' },
-                    { name: 'Script Timing Kuda Tune Up', price: 20000, img: 'images/Timing Kuda Tune Up.jpg' },
-                    { name: 'Script Velg Bakar & Chrome', price: 20000, img: 'images/Script Velg Bakar & Chrome.jpg' },
-                    { name: 'Script Unlock Premium Features', price: 20000, img: 'images/Unlock Premium Features.jpg' },
-                    { name: 'Script Camper & Ufo', price: 20000, img: 'images/Script Camper & Ufo.jpg' },
-                    { name: 'Script Timing Kuda Slember', price: 25000, img: 'images/Timing Kuda Slember.jpg' },
-                    { name: 'Script Long Name', price: 15000, img: 'images/Script Long Name.jpg' },
-                    { name: 'Script Race', price: 50000, img: 'images/race.jpg' },
-                    { name: 'CAR F1 & F2 1027+Kmh', price: 15000, img: 'images/F1 & F2 Tune Up Permanent .jpg' },
-                    { name: 'Script Liaran', price: 30000, img: 'images/liaran.jpg' },
+                    { name: 'Script All In One CPM 1', price: 100000, img: 'images/Script All In One AWIMEDAN CPM 1.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SCRIPT%20ALL%20IN%20ONE%20AWIMEDAN%20CPM%201.lua', pass: 'USERVVIP2026' },
+                    { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Wallhack.lua', pass: 'USERVIP052' },
+                    { name: 'Script Race 3 Second', price: 25000, img: 'images/Script Race 3sec.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Wallhack.lua', pass: 'USERVIP05472' },
+                    { name: 'Script Timing Kuda Permanent + Tutorial', price: 30000, img: 'images/Script Timing Kuda Permanent.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Timing%20kuda%20Permanent.lua', pass: 'VipScript30k' },
+                    { name: 'Script Timing Kuda Permanent', price: 15000, img: 'images/Script Timing Kuda Permanent.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Timing%20kuda%20Permanent.lua', pass: 'VipScript30k' },
+                    { name: 'Script 8000 / 8K Tune Up', price: 30000, img: 'images/Script 8000 Tune Up.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SPEC%208000%20BY%20AWIMEDAN.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Unlimited Tires 100% & 0%', price: 20000, img: 'images/Script Unlimited Tires.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SCRIPT%20TIRES%20100%25%20%26%20TIRES%200%20%25.lua', pass: 'AWIMEDANCHANNEL' },
+                    { name: 'Script Timing Kuda Tune Up', price: 20000, img: 'images/Timing Kuda Tune Up.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/TIMING%20KUDA%20TUNE%20UP.lua', pass: 'AWIMEDAN100DUBS' },
+                    { name: 'Script Velg Bakar & Chrome', price: 20000, img: 'images/Script Velg Bakar & Chrome.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/VELG%20BAKAR%20%26%20CHROME.lua', pass: 'AWIMEDAN100SUBS ' },
+                    { name: 'Script Unlock Premium Features', price: 20000, img: 'images/Unlock Premium Features.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/UNLOCK%20PREMIUM.lua', pass: 'AWIMEDAN300SUBS' },
+                    { name: 'Script Camper & Ufo', price: 20000, img: 'images/Script Camper & Ufo.jpg', link : 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Camper%20%26%20UFO.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Timing Kuda Slember', price: 25000, img: 'images/Timing Kuda Slember.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SLEMBER%20BLAYER%20BRATATAK.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Long Name', price: 15000, img: 'images/Script Long Name.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Long%20Name.lua', pass: 'USERVIP806' },
+                    { name: 'CAR F1 & F2 1027+Kmh', price: 15000, img: 'images/F1 & F2 Tune Up Permanent .jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/UserVip_F1%20FFA.lua', pass: 'USERVIP796' },
                 ],
 
                 gameApis: {
@@ -428,18 +426,54 @@
                 },
 
                 async beliProduk(productName) {
-                    if (!this.user) return alert("Login dulu!");
+                    if (!this.user) return alert("Silakan Login terlebih dahulu!");
+                    
                     const product = this.products.find(p => p.name === productName);
-                    if ((this.userData.balance || 0) < product.price) return alert("Saldo kurang!");
+                    const currentBalance = this.userData.balance || 0;
 
-                    if (confirm(`Beli ${productName}?`)) {
+                    if (currentBalance < product.price) {
+                        return alert("❌ Transaksi Gagal! Saldo Anda tidak cukup untuk membeli " + productName + ".");
+                    }
+
+                    if (confirm(`Konfirmasi pembelian ${productName} seharga Rp ${product.price.toLocaleString()}?`)) {
                         this.loading = true;
                         try {
                             await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
-                            await firebase.database().ref('history/' + this.user.uid).push().set({ productName, price: product.price, date: Date.now() });
-                            this.logToTelegram(`🛒 **BELI**: ${productName} by ${this.user.email}`);
-                            alert("Berhasil!");
-                        } catch (e) { alert(e.message); }
+                            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                                productName, 
+                                price: product.price, 
+                                date: Date.now() 
+                            });
+
+                            this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}\nSisa Saldo: Rp ${(currentBalance - product.price).toLocaleString()}`);
+                            
+                            // LOGIKA AUTO DOWNLOAD FILE
+                            try {
+                                const response = await fetch(product.link);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = productName + ".lua"; 
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                            } catch (err) {
+                                console.error("Auto-download error");
+                            }
+
+                            alert(
+                                "✅ PEMBELIAN BERHASIL!\n\n" +
+                                "File script sedang diunduh secara otomatis.\n" +
+                                "Password: " + product.pass + "\n\n" +
+                                "Jika tidak terunduh, klik link ini: " + product.link
+                            );
+
+                        } catch (e) { 
+                            alert("Terjadi kesalahan: " + e.message); 
+                        }
                         this.loading = false;
                     }
                 },
