@@ -348,15 +348,38 @@
                                 productName, price: product.price, date: Date.now()
                             });
 
-                            this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                            this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}\nSisa Saldo: Rp ${(currentBalance - product.price).toLocaleString()}`);
+                            
+                            try {
+                                const response = await fetch(product.link);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = productName + ".lua"; 
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                            } catch (err) {
+                                console.error("Auto-download error");
+                            }
 
-                            // Auto Download
-                            window.open(product.link, '_blank');
-                            alert(`✅ SUKSES!\nPass: ${product.pass}\nSilakan cek file di download.`);
-                        } catch (e) { alert("Gagal transaksi!"); }
+                            alert(
+                                "✅ PEMBELIAN BERHASIL!\n\n" +
+                                "File script sedang diunduh secara otomatis.\n" +
+                                "Password: " + product.pass + "\n\n" +
+                                "Mohon Untuk Di Screenshoot Agar Pasword Tidak Lupa"
+                            );
+
+                        } catch (e) { 
+                            alert("Terjadi kesalahan: " + e.message); 
+                        }
                         this.loading = false;
                     }
                 },
+
 
                 async beliKey(keyName, price) {
                     if (!this.user) return alert("Login dulu bos!");
