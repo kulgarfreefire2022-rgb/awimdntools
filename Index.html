@@ -116,19 +116,22 @@
                 </div>
             </div>
 
-            <div id="catalog" class="py-12">
-                <h2 class="text-2xl font-black italic uppercase mb-10 border-l-4 border-red-600 pl-4 tracking-tighter">Katalog <span class="accent-red">Premium</span></h2>
+                  <div id="catalog" class="py-12">
+                <h2 class="text-2xl font-black italic uppercase mb-10 border-l-4 border-red-600 pl-4">Katalog <span class="accent-red">Premium</span></h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                     <template x-for="p in products" :key="p.name">
-                        <div class="stat-card p-4 md:p-6 flex flex-col hover:border-red-600 group">
+                        <div class="stat-card p-4 md:p-6 flex flex-col hover:border-red-600 group transition-all duration-300">
                             <div class="banner-container mb-5">
-                                <img :src="p.img" class="group-hover:scale-105 transition-transform duration-500">
-                                <div class="absolute top-3 right-3 bg-red-600 px-3 py-1 rounded text-[10px] font-black italic shadow-lg uppercase">Sale</div>
+                                <img :src="p.img" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute top-3 right-3 bg-red-600 px-3 py-1 rounded text-[10px] font-black italic shadow-lg">SALE</div>
                             </div>
+                            
                             <h3 class="font-bold text-lg mb-2 truncate text-gray-100" x-text="p.name"></h3>
                             <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
                                 <p class="accent-red font-black text-2xl tracking-tighter" x-text="'Rp ' + p.price.toLocaleString()"></p>
-                                <button @click="beliProduk(p.name)" class="bg-white text-black px-6 py-3 rounded-lg font-black text-[11px] uppercase hover:bg-red-600 hover:text-white shadow-xl active:scale-95">Beli Sekarang</button>
+                                <button @click="beliProduk(p.name)" class="bg-white text-black px-6 py-3 rounded-lg font-black text-[11px] uppercase tracking-tighter hover:bg-red-600 hover:text-white shadow-xl active:scale-95">
+                                    Beli Sekarang
+                                </button>
                             </div>
                         </div>
                     </template>
@@ -137,37 +140,40 @@
         </div>
 
         <div x-show="currentPage === 'tools'" x-transition class="container mx-auto px-4 max-w-xl">
-             <div x-show="!cpmUser.isLoggedIn" class="stat-card p-10 border-red-600/20">
+            <div x-show="!cpmUser.isLoggedIn" class="stat-card p-10 border-red-600/20">
                 <div class="text-center mb-8">
                     <i class="fas fa-shield-alt text-4xl accent-red mb-4"></i>
                     <h2 class="text-2xl font-black italic">TOOLS INJECTOR</h2>
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Gunakan Premium Key untuk Akses</p>
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Masukkan Kredensial Akun Game Anda</p>
                 </div>
+                
                 <div class="space-y-4">
                     <select x-model="cpmForm.gameId" class="w-full bg-black border border-white/10 p-4 rounded-lg text-sm font-bold">
                         <option value="">Pilih Versi Game</option>
                         <option value="1">CPM 1 (Original)</option>
                         <option value="2">CPM 2 (New)</option>
                     </select>
-                    <input type="email" x-model="cpmForm.email" placeholder="Email Game" class="w-full bg-black border border-white/10 p-4 rounded-lg text-sm">
-                    <input type="password" x-model="cpmForm.password" placeholder="Password Game" class="w-full bg-black border border-white/10 p-4 rounded-lg text-sm">
-                    <input type="text" x-model="cpmForm.key" placeholder="Premium Key (AW-XXXX-XXXX)" class="w-full bg-black border border-red-600/30 p-4 rounded-lg text-sm font-mono text-red-500">
-                    <button @click="handleCpmLogin" :disabled="loading" class="w-full btn-primary py-4 rounded-xl font-black italic tracking-widest uppercase">
-                        <span x-show="!loading">Verifikasi & Login</span>
+                    <input type="email" x-model="cpmForm.email" placeholder="Email Akun Game" class="w-full bg-black border border-white/10 p-4 rounded-lg outline-none text-sm">
+                    <input type="password" x-model="cpmForm.password" placeholder="Password Game" class="w-full bg-black border border-white/10 p-4 rounded-lg outline-none text-sm">
+                    <input type="text" x-model="cpmForm.key" placeholder="Premium License Key" class="w-full bg-black border border-red-600/30 p-4 rounded-lg outline-none text-sm font-mono text-red-500">
+                    
+                    <button @click="handleCpmLogin" :disabled="loading" class="w-full btn-primary py-4 rounded-xl font-black italic tracking-widest">
+                        <span x-show="!loading">VERIFIKASI & LOGIN</span>
                         <i x-show="loading" class="fas fa-circle-notch animate-spin"></i>
                     </button>
                     <p class="text-red-500 text-xs text-center font-bold" x-text="message"></p>
                 </div>
             </div>
-            
-            <div x-show="cpmUser.isLoggedIn" x-cloak class="space-y-4">
+
+            <div x-show="cpmUser.isLoggedIn" class="space-y-4" x-cloak>
                 <div class="stat-card p-4 flex justify-between items-center border-l-4 border-green-500">
                     <div>
-                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Authorized Acc</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold">Connected Account</p>
                         <p class="font-bold text-sm" x-text="cpmUser.email"></p>
                     </div>
-                    <button @click="logoutCpm" class="bg-red-600/10 text-red-500 px-4 py-2 rounded font-black text-[10px] uppercase tracking-tighter">Logout Tool</button>
+                    <button @click="logoutCpm" class="bg-red-600/10 text-red-500 px-4 py-2 rounded font-black text-[10px]">LOGOUT</button>
                 </div>
+                
                 <div class="grid grid-cols-1 gap-3">
                     <button @click="setKingRank" class="stat-card p-6 flex items-center hover:bg-red-600/10 text-left">
                         <i class="fas fa-crown text-3xl text-yellow-500 mr-6"></i>
@@ -175,58 +181,74 @@
                     </button>
                     <button @click="changeEmailPrompt" class="stat-card p-6 flex items-center hover:bg-red-600/10 text-left">
                         <i class="fas fa-envelope text-3xl accent-red mr-6"></i>
-                        <div><h4 class="font-black italic text-sm">FORCE CHANGE EMAIL</h4><p class="text-[10px] text-gray-500">Ubah email tanpa kode verifikasi</p></div>
+                        <div><h4 class="font-black italic text-sm">FORCE CHANGE EMAIL</h4><p class="text-[10px] text-gray-500">Ganti email akun tanpa kode verifikasi</p></div>
+                    </button>
+                    <button @click="changePasswordPrompt" class="stat-card p-6 flex items-center hover:bg-red-600/10 text-left">
+                        <i class="fas fa-key text-3xl accent-red mr-6"></i>
+                        <div><h4 class="font-black italic text-sm">INSTANT CHANGE PASS</h4><p class="text-[10px] text-gray-500">Ubah password akun secara instan</p></div>
                     </button>
                 </div>
             </div>
         </div>
 
         <div x-show="currentPage === 'buykey'" x-transition class="container mx-auto px-4">
-             <div class="text-center py-10">
+            <div class="text-center py-10">
                 <h2 class="text-4xl font-black italic uppercase mb-2 tracking-tighter">BUY <span class="accent-red">PREMIUM KEY</span></h2>
-                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Akses semua fitur injector secara premium</p>
+                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Pilih lisensi untuk mendapatkan akses penuh ke Tools Injector</p>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-6">
-                <div class="stat-card p-8 border-t-4 border-white/10 hover:border-red-600 flex flex-col items-center">
+                <div class="stat-card p-8 border-t-4 border-white/10 hover:border-red-600 transition-all flex flex-col items-center text-center">
                     <i class="fas fa-bolt text-4xl mb-4 text-gray-400"></i>
-                    <h3 class="text-xl font-black italic uppercase">VIP 7 DAY</h3>
-                    <div class="text-3xl font-black my-8 accent-red tracking-tighter">Rp 25.000</div>
+                    <h3 class="text-xl font-black italic uppercase">VIP 7 DAY KEY</h3>
+                    <p class="text-[9px] text-gray-500 font-bold mb-6 uppercase tracking-widest">AKSES FULL FITUR - 1 MINGGU</p>
+                    <div class="text-3xl font-black mb-8 accent-red tracking-tighter">Rp 25.000</div>
                     <button @click="beliKey('VIP 7 DAY', 25000)" class="w-full btn-primary py-3 rounded-lg font-black italic text-xs uppercase tracking-widest">Beli Sekarang</button>
                 </div>
-                <div class="stat-card p-8 border-t-4 border-red-600 relative overflow-hidden flex flex-col items-center scale-105 shadow-2xl">
+
+                <div class="stat-card p-8 border-t-4 border-red-600 relative overflow-hidden flex flex-col items-center text-center scale-105 shadow-2xl shadow-red-600/10">
                     <div class="absolute top-4 right-[-35px] bg-red-600 text-[8px] font-black py-1 px-10 rotate-45 tracking-tighter">HOT ITEM</div>
                     <i class="fas fa-crown text-4xl mb-4 text-yellow-500"></i>
-                    <h3 class="text-xl font-black italic uppercase">VIP 1 MONTH</h3>
-                    <div class="text-3xl font-black my-8 accent-red tracking-tighter">Rp 75.000</div>
+                    <h3 class="text-xl font-black italic uppercase">VIP 1 MONTH KEY</h3>
+                    <p class="text-[9px] text-gray-500 font-bold mb-6 uppercase tracking-widest">AKSES FULL FITUR - 30 HARI</p>
+                    <div class="text-3xl font-black mb-8 accent-red tracking-tighter">Rp 75.000</div>
                     <button @click="beliKey('VIP 1 MONTH', 75000)" class="w-full btn-primary py-3 rounded-lg font-black italic text-xs uppercase tracking-widest">Beli Sekarang</button>
                 </div>
-                <div class="stat-card p-8 border-t-4 border-white/10 hover:border-red-600 flex flex-col items-center">
+
+                <div class="stat-card p-8 border-t-4 border-white/10 hover:border-red-600 transition-all flex flex-col items-center text-center">
                     <i class="fas fa-infinity text-4xl mb-4 text-blue-500"></i>
-                    <h3 class="text-xl font-black italic uppercase">PERMANENT</h3>
-                    <div class="text-3xl font-black my-8 accent-red tracking-tighter">Rp 200.000</div>
+                    <h3 class="text-xl font-black italic uppercase">UNLIMITED</h3>
+                    <p class="text-[9px] text-gray-500 font-bold mb-6 uppercase tracking-widest">AKSES PERMANEN SEUMUR HIDUP</p>
+                    <div class="text-3xl font-black mb-8 accent-red tracking-tighter">Rp 200.000</div>
                     <button @click="beliKey('UNLIMITED ACCESS', 200000)" class="w-full btn-primary py-3 rounded-lg font-black italic text-xs uppercase tracking-widest">Beli Sekarang</button>
                 </div>
             </div>
         </div>
 
-        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 max-w-md">
+        <div x-show="currentPage === 'topup'" x-transition class="container mx-auto px-4 max-md">
             <div class="stat-card p-8 text-center">
-                <h2 class="text-2xl font-black italic accent-red mb-2 uppercase">Top Up Saldo</h2>
-                <p class="text-[10px] text-gray-500 font-bold uppercase mb-8 tracking-widest">Pilih nominal dan scan QRIS</p>
+                <h2 class="text-2xl font-black italic accent-red mb-2">TOP UP SALDO</h2>
+                <p class="text-[10px] text-gray-500 font-bold uppercase mb-8">Pilih nominal dan scan QRIS</p>
+                
                 <div class="grid grid-cols-2 gap-2 mb-8">
                     <template x-for="amt in [20000, 50000, 100000, 150000]">
-                        <button @click="selectedAmount = amt" :class="selectedAmount === amt ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-400 border border-white/5'" class="p-4 rounded-lg font-black text-sm">
+                        <button @click="selectedAmount = amt" 
+                                :class="selectedAmount === amt ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-400'"
+                                class="p-4 rounded-lg font-bold text-sm">
                             Rp <span x-text="amt.toLocaleString()"></span>
                         </button>
                     </template>
                 </div>
+
                 <div x-show="selectedAmount > 0" x-transition class="bg-white p-4 rounded-xl mb-6">
-                    <img src="qris.jpg" class="w-full rounded">
-                    <p class="text-black font-black mt-4 italic text-lg uppercase" x-text="'TOTAL: Rp ' + selectedAmount.toLocaleString()"></p>
+                    <img src="qris.jpg" class="w-full">
+                    <p class="text-black font-black mt-2 italic text-lg" x-text="'TOTAL: Rp ' + selectedAmount.toLocaleString()"></p>
                 </div>
-                <div x-show="selectedAmount > 0">
-                    <button @click="sendToWhatsApp" class="w-full bg-green-600 py-4 rounded-xl font-black flex items-center justify-center uppercase italic tracking-widest">
-                        <i class="fab fa-whatsapp mr-2 text-xl"></i> Konfirmasi Admin
+
+                <div x-show="selectedAmount > 0" class="space-y-4">
+                    <input type="file" @change="handleFileUpload" class="text-xs text-gray-500 w-full mb-4">
+                    <button @click="sendToWhatsApp" class="w-full bg-green-600 py-4 rounded-xl font-black flex items-center justify-center">
+                        <i class="fab fa-whatsapp mr-2 text-xl"></i> KONFIRMASI ADMIN
                     </button>
                 </div>
             </div>
@@ -234,23 +256,65 @@
 
         <div x-show="currentPage === 'history'" x-transition class="container mx-auto px-4 max-w-2xl">
             <div class="stat-card p-6">
-                <h2 class="text-xl font-black italic accent-red mb-6 uppercase tracking-tighter">Riwayat Transaksi</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-black italic accent-red">RIWAYAT TRANSAKSI</h2>
+                    <button @click="currentPage = 'home'" class="text-[10px] font-bold text-gray-500 hover:text-white uppercase">
+                        <i class="fas fa-arrow-left mr-1"></i> Kembali
+                    </button>
+                </div>
+
                 <div class="space-y-3">
                     <template x-for="h in userHistory" :key="h.date">
-                        <div class="bg-white/5 border border-white/10 p-4 rounded-xl flex justify-between items-center">
+                        <div class="bg-white/5 border border-white/5 p-4 rounded-xl flex justify-between items-center hover:border-red-600/30 transition-colors">
                             <div class="overflow-hidden">
-                                <p class="font-bold text-sm truncate uppercase tracking-tighter" x-text="h.productName"></p>
-                                <p class="text-[9px] text-gray-500 font-bold" x-text="new Date(h.date).toLocaleString('id-ID')"></p>
+                                <p class="font-bold text-sm truncate" x-text="h.productName"></p>
+                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-tighter" x-text="new Date(h.date).toLocaleString('id-ID')"></p>
                             </div>
-                            <div class="text-right ml-4 shrink-0">
+                            <div class="text-right ml-4">
                                 <p class="accent-red font-black text-sm" x-text="'- Rp ' + h.price.toLocaleString()"></p>
-                                <span class="text-[8px] bg-green-500/20 text-green-500 px-2 py-0.5 rounded font-black uppercase italic tracking-widest">Success</span>
+                                <span class="text-[8px] bg-green-500/20 text-green-500 px-2 py-0.5 rounded font-black italic">SUCCESS</span>
                             </div>
+                        </div>
+                    </template>
+
+                    <template x-if="userHistory.length === 0">
+                        <div class="text-center py-12">
+                            <i class="fas fa-history text-4xl text-gray-800 mb-4"></i>
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">Belum ada transaksi</p>
                         </div>
                     </template>
                 </div>
             </div>
         </div>
+
+        <template x-if="isAdmin">
+            <div x-show="currentPage === 'admin'" x-transition class="container mx-auto px-4">
+                <div class="stat-card p-6 overflow-x-auto">
+                    <h2 class="text-xl font-black italic mb-6 accent-red">ADMIN CONTROL</h2>
+                    <table class="w-full text-left text-xs uppercase font-bold">
+                        <thead class="text-gray-500 border-b border-white/5">
+                            <tr>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Saldo</th>
+                                <th class="p-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            <template x-for="u in allUsers" :key="u.id">
+                                <tr class="hover:bg-white/5">
+                                    <td class="p-4" x-text="u.email"></td>
+                                    <td class="p-4 accent-red font-black" x-text="'Rp ' + (u.balance || 0).toLocaleString()"></td>
+                                    <td class="p-4 flex gap-2">
+                                        <button @click="updateBalance(u.id, 10000)" class="bg-green-600/20 text-green-500 px-2 py-1 rounded">+10K</button>
+                                        <button @click="resetBalance(u.id)" class="bg-red-600/20 text-red-500 px-2 py-1 rounded">RESET</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
 
     </main>
 
@@ -260,9 +324,13 @@
                 currentPage: 'home', sideBar: false, loading: false, message: '', user: null, userData: { balance: 0 },
                 cpmUser: { isLoggedIn: false, email: '', token: '', gameData: null },
                 cpmForm: { gameId: '', email: '', password: '', key: '' },
-                userHistory: [], selectedAmount: 0, isAdmin: false,
-                adminEmail: "kulgarfreefire2022@gmail.com",
-                
+                userHistory: [],
+                selectedAmount: 0,
+                selectedFile: null,
+                adminEmail: "kulgarfreefire2022@gmail.com", 
+                isAdmin: false,
+                allUsers: [],
+
                 firebaseConfig: {
                     apiKey: "AIzaSyCNZokAKl6TVKWMOc51SCSRKZGqoG77uFI",
                     authDomain: "cpmapikey.firebaseapp.com",
@@ -272,7 +340,6 @@
                     messagingSenderId: "372965414639",
                     appId: "1:372965414639:web:e79bb42a252336cab52d1a"
                 },
-
                 botToken: "8625213432:AAHVdpxEdFkh1vg1SF5RQha09wp6SxRlGdU",
                 adminChatId: "6095762919",
 
@@ -281,7 +348,16 @@
                     { name: 'Script Wallhack', price: 20000, img: 'images/Script Wallhack.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Wallhack.lua', pass: 'USERVIP052' },
                     { name: 'Script Race 3 Second', price: 25000, img: 'images/Script Race 3sec.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Wallhack.lua', pass: 'USERVIP05472' },
                     { name: 'Script Timing Kuda Permanent + Tutorial', price: 30000, img: 'images/Script Timing Kuda Permanent.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Timing%20kuda%20Permanent.lua', pass: 'VipScript30k' },
-                    { name: 'Script 8000 / 8K Tune Up', price: 30000, img: 'images/Script 8000 Tune Up.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SPEC%208000%20BY%20AWIMEDAN.lua', pass: 'AWIMEDAN100SUBS' }
+                    { name: 'Script Timing Kuda Permanent', price: 15000, img: 'images/Script Timing Kuda Permanent.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Timing%20kuda%20Permanent.lua', pass: 'VipScript30k' },
+                    { name: 'Script 8000 / 8K Tune Up', price: 30000, img: 'images/Script 8000 Tune Up.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SPEC%208000%20BY%20AWIMEDAN.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Unlimited Tires 100% & 0%', price: 20000, img: 'images/Script Unlimited Tires.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SCRIPT%20TIRES%20100%25%20%26%20TIRES%200%20%25.lua', pass: 'AWIMEDANCHANNEL' },
+                    { name: 'Script Timing Kuda Tune Up', price: 20000, img: 'images/Timing Kuda Tune Up.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/TIMING%20KUDA%20TUNE%20UP.lua', pass: 'AWIMEDAN100DUBS' },
+                    { name: 'Script Velg Bakar & Chrome', price: 20000, img: 'images/Script Velg Bakar & Chrome.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/VELG%20BAKAR%20%26%20CHROME.lua', pass: 'AWIMEDAN100SUBS ' },
+                    { name: 'Script Unlock Premium Features', price: 20000, img: 'images/Unlock Premium Features.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/UNLOCK%20PREMIUM.lua', pass: 'AWIMEDAN300SUBS' },
+                    { name: 'Script Camper & Ufo', price: 20000, img: 'images/Script Camper & Ufo.jpg', link : 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Camper%20%26%20UFO.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Timing Kuda Slember', price: 25000, img: 'images/Timing Kuda Slember.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/SLEMBER%20BLAYER%20BRATATAK.lua', pass: 'AWIMEDAN100SUBS' },
+                    { name: 'Script Long Name', price: 15000, img: 'images/Script Long Name.jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/Long%20Name.lua', pass: 'USERVIP806' },
+                    { name: 'CAR F1 & F2 1027+Kmh', price: 15000, img: 'images/F1 & F2 Tune Up Permanent .jpg', link: 'https://raw.githubusercontent.com/indiansearnroof-eng/scrfile/main/UserVip_F1%20FFA.lua', pass: 'USERVIP796' },
                 ],
 
                 gameApis: {
@@ -296,7 +372,10 @@
                         if (u) {
                             this.fetchUserData(u.uid);
                             this.fetchUserHistory(u.uid);
-                            if (u.email === this.adminEmail) this.isAdmin = true;
+                            if (u.email === this.adminEmail) {
+                                this.isAdmin = true;
+                                this.fetchAllUsers();
+                            }
                         }
                     });
                 },
@@ -310,7 +389,8 @@
 
                 fetchUserData(uid) {
                     firebase.database().ref('users/' + uid).on('value', (snap) => {
-                        this.userData = snap.val() || { balance: 0 };
+                        if (snap.val()) this.userData = snap.val();
+                        else firebase.database().ref('users/' + uid).set({ email: this.user.email, balance: 0, createdAt: Date.now() });
                     });
                 },
 
@@ -321,31 +401,39 @@
                     });
                 },
 
+                fetchAllUsers() {
+                    firebase.database().ref('users').on('value', (snap) => {
+                        const data = snap.val();
+                        this.allUsers = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                    });
+                },
+
+                handleFileUpload(event) { this.selectedFile = event.target.files[0]; },
+
                 sendToWhatsApp() {
-                    if (this.selectedAmount === 0) return alert("Pilih nominal!");
+                    if (!this.selectedFile) return alert("Pilih bukti transfer!");
                     const msg = `Konfirmasi Top Up\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
                     window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
                 },
 
                 async beliProduk(productName) {
-                    if (!this.user) return alert("Login dulu bos!");
+                    if (!this.user) return alert("Silakan Login terlebih dahulu!");
                     
-                    // Cek Turnstile
-                    const token = document.querySelector('[name="cf-turnstile-response"]').value;
-                    if (!token) return alert("Selesaikan verifikasi I am Human!");
-
                     const product = this.products.find(p => p.name === productName);
-                    if (this.userData.balance < product.price) return alert("Saldo gak cukup!");
+                    const currentBalance = this.userData.balance || 0;
 
-                    if (confirm(`Beli ${productName}?`)) {
+                    if (currentBalance < product.price) {
+                        return alert("❌ Transaksi Gagal! Saldo Anda tidak cukup untuk membeli " + productName + ".");
+                    }
+
+                    if (confirm(`Konfirmasi pembelian ${productName} seharga Rp ${product.price.toLocaleString()}?`)) {
                         this.loading = true;
                         try {
-                            // Potong Saldo
-                            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-                            
-                            // Catat History
-                            await firebase.database().ref('history/' + this.user.uid).push().set({
-                                productName, price: product.price, date: Date.now()
+                            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
+                            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                                productName, 
+                                price: product.price, 
+                                date: Date.now() 
                             });
 
                             this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}\nSisa Saldo: Rp ${(currentBalance - product.price).toLocaleString()}`);
@@ -380,33 +468,74 @@
                     }
                 },
 
-
+                // LOGIKA AUTO GENERATE KEY KE FIREBASE DATABASE
                 async beliKey(keyName, price) {
-                    if (!this.user) return alert("Login dulu bos!");
+                    if (!this.user) return alert("Silakan Login terlebih dahulu!");
                     
-                    const token = document.querySelector('[name="cf-turnstile-response"]').value;
-                    if (!token) return alert("Selesaikan verifikasi I am Human!");
+                    const currentBalance = this.userData.balance || 0;
+                    if (currentBalance < price) {
+                        return alert("❌ Saldo tidak cukup!");
+                    }
 
-                    if (this.userData.balance < price) return alert("Saldo kurang!");
-
-                    if (confirm(`Beli Premium Key ${keyName}?`)) {
+                    if (confirm(`Beli Lisensi ${keyName} seharga Rp ${price.toLocaleString()}?`)) {
                         this.loading = true;
                         try {
-                            const genKey = `AW-${Math.random().toString(36).substring(2,6).toUpperCase()}-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
-                            
-                            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - price);
-                            
-                            // Save to Global Keys Database
-                            await firebase.database().ref('keys/' + genKey).set({
-                                status: 'active', type: keyName, owner: this.user.email, createdAt: Date.now()
+                            // 1. Potong Saldo via Transaction (Aman)
+                            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - price);
+
+                            // 2. Generate Serial Key Acak
+                            const randomPart = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+                            const generatedKey = `AW-${randomPart()}-${randomPart()}`;
+
+                            // 3. Tentukan Durasi Expired
+                            let durationDays = 0;
+                            if (keyName.includes('7 DAY')) durationDays = 7;
+                            else if (keyName.includes('1 MONTH')) durationDays = 30;
+                            else if (keyName.includes('UNLIMITED')) durationDays = 3650; // 10 Tahun
+
+                            const now = Date.now();
+                            const expiredAt = now + (durationDays * 24 * 60 * 60 * 1000);
+
+                            // 4. Simpan ke Path: keys/GENERATED_KEY
+                            await firebase.database().ref('keys/' + generatedKey).set({
+                                status: 'active',
+                                type: keyName,
+                                owner: this.user.email,
+                                uid: this.user.uid,
+                                createdAt: now,
+                                expiredAt: expiredAt,
+                                formattedExpiry: new Date(expiredAt).toLocaleString('id-ID')
                             });
 
-                            alert(`✅ KEY TERBIT!\n\nKEY: ${genKey}\n\nSilakan simpan key ini untuk login Tools.`);
-                            this.logToTelegram(`🔑 **NEW KEY GENERATED**\nUser: ${this.user.email}\nKey: ${genKey}`);
-                        } catch (e) { alert("Gagal generate key!"); }
+                            // 5. Catat di Riwayat User
+                            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                                productName: "BUY KEY: " + keyName, 
+                                price: price, 
+                                date: now,
+                                details: "Generated Key: " + generatedKey
+                            });
+
+                            // 6. Log ke Telegram Admin
+                            this.logToTelegram(`🔑 **AUTO GENERATE KEY**\nUser: ${this.user.email}\nKey: \`${generatedKey}\`\nTipe: ${keyName}\nExpired: ${new Date(expiredAt).toLocaleString('id-ID')}`);
+                            
+                            // 7. Berikan hasil akhir ke User
+                            alert(`✅ PEMBELIAN BERHASIL!\n\nSERIAL KEY ANDA:\n${generatedKey}\n\nSilakan salin key ini dan tempel di menu Tools untuk login. Data sudah tersimpan otomatis di database.`);
+                            
+                            // Opsi tambahan jika user mau lapor ke WA
+                            if(confirm("Buka WhatsApp untuk simpan bukti pembelian ke Admin?")) {
+                                window.open(`https://wa.me/6281330750863?text=${encodeURIComponent('Halo Admin, saya baru saja membeli ' + keyName + ' dan mendapatkan Key: ' + generatedKey)}`, '_blank');
+                            }
+
+                        } catch (e) { 
+                            console.error(e);
+                            alert("Terjadi kesalahan sistem!"); 
+                        }
                         this.loading = false;
                     }
                 },
+
+                updateBalance(uid, amt) { firebase.database().ref('users/' + uid + '/balance').transaction(b => (b || 0) + amt); },
+                resetBalance(uid) { firebase.database().ref('users/' + uid + '/balance').set(0); },
 
                 async handleCpmLogin() {
                     if (!this.cpmForm.key || !this.cpmForm.email) { this.message = "Isi data!"; return; }
@@ -508,3 +637,4 @@
     </script>
 </body>
 </html>
+
