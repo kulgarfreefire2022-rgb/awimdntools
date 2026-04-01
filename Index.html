@@ -100,12 +100,21 @@
     </div>
 
     <main class="pt-24 pb-20">
-        <div x-show="currentPage === 'home'" class="container mx-auto px-4">
+        <div x-show="currentPage === 'home'" x-transition class="container mx-auto px-4">
             <div class="text-center py-12 mb-12">
-                <div class="inline-block bg-red-600/20 text-red-500 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">⚡ Car Parking Multiplayer Tools</div>
+                <div class="inline-block bg-red-600/20 text-red-500 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
+                    ⚡ Car Parking Multiplayer Tools
+                </div>
                 <h1 class="hero-title text-6xl md:text-8xl italic uppercase mb-4">AWIMEDAN <span class="accent-red">STORE</span></h1>
+                <p class="text-gray-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+                    Platform modifikasi akun Car Parking Multiplayer #1 di Indonesia.<br>
+                    Proses otomatis, server stabil, dan terpercaya.
+                </p>
+                
                 <div class="flex flex-wrap justify-center gap-4 mt-10">
-                       </button>
+                    <button @click="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})" class="btn-primary px-10 py-4 rounded-lg font-black italic flex items-center">
+                        <i class="fas fa-shopping-cart mr-2"></i> LIHAT TOKO
+                    </button>
                     <button @click="currentPage = 'topup'" class="btn-secondary px-10 py-4 rounded-lg font-black italic">
                         TOP UP SALDO
                     </button>
@@ -640,4 +649,3 @@
     </script>
 </body>
 </html>
-
