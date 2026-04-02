@@ -393,7 +393,7 @@ function app() {
         },
 
                         // --- 2. TRANSAKSI (VERSI FINAL ANTI 404) ---
-        async beliProduk(productName) {
+                async beliProduk(productName) {
             if (!this.user) return alert("Silakan Login terlebih dahulu!");
             const product = this.products.find(p => p.name === productName);
             const currentBalance = this.userData.balance || 0;
@@ -403,40 +403,50 @@ function app() {
                 this.loading = true;
                 
                 try {
-                    // 1. Potong Saldo di Firebase
+                    // 1. Potong Saldo
                     await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
                     
-                    // 2. Ambil detail link yang sudah di-fix oleh Worker (JSDelivr Link)
+                    // 2. Ambil Link dari Worker
                     const res = await fetch(this.WORKER_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
                     });
                     const detail = await res.json();
-
                     if (!detail.link) throw new Error("Link produk tidak ditemukan");
 
-                    // 3. Simpan Riwayat
+                    // 3. METODE DOWNLOAD TERKUAT (BLOB FETCH)
+                    // Mengambil file via proxy agar tidak kena CORS/Blokir
+                    const fileResponse = await fetch(detail.link);
+                    const blob = await fileResponse.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    
+                    // Pastikan nama file bersih dari spasi dan berakhiran .lua
+                    const safeName = productName.replace(/\s+/g, '_') + ".lua";
+                    link.download = safeName;
+                    
+                    document.body.appendChild(link);
+                    link.click(); // Memicu download
+
+                    // 4. Simpan Riwayat
                     await firebase.database().ref('history/' + this.user.uid).push().set({ 
                         productName, price: product.price, date: Date.now() 
                     });
 
                     this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-                    // --- EKSEKUSI DOWNLOAD (METODE TERKUAT) ---
-                    // Kita pakai Iframe tersembunyi agar tidak buka tab baru & tidak kena blokir
-                    const ifrm = document.createElement('iframe');
-                    ifrm.style.display = 'none';
-                    ifrm.src = detail.link; 
-                    document.body.appendChild(ifrm);
+                   alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager Atau ZArchiver agar bisa digunakan di GameGuardian.`);
                     
-                    // Notifikasi sukses & Password
-                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager Atau ZArchiver agar bisa digunakan di GameGuardian.`);
-                    
-                    // Hapus iframe setelah 5 detik agar bersih
-                    setTimeout(() => ifrm.remove(), 5000);
+                    // Cleanup memori
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(blobUrl);
+                        link.remove();
+                    }, 1000);
 
                 } catch (e) { 
-                    alert("Gagal memproses transaksi: " + e.message); 
+                    alert("Gagal mendownload: " + e.message + "\nPastikan koneksi stabil."); 
                 } finally {
                     this.loading = false;
                 }
@@ -674,4 +684,4 @@ function app() {
 
 
 </body>
-    </html>
+                      </html>
