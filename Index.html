@@ -420,15 +420,25 @@ function app() {
 
                     this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-                    // Auto Download
+                    // --- BAGIAN YANG DIUBAH (Auto Download) ---
                     const link = document.createElement('a');
                     link.href = detail.link;
-                    link.download = productName + ".lua";
+                    link.setAttribute('download', productName + ".lua");
+                    link.setAttribute('target', '_blank'); // Menjamin pemicu download di Chrome Mobile
+                    link.style.display = 'none';
                     document.body.appendChild(link);
+                    
+                    // Trigger klik
                     link.click();
-                    document.body.removeChild(link);
+                    
+                    // Hapus elemen setelah jeda singkat
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                    }, 150);
+                    // ------------------------------------------
 
-                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Lalu hapus TXT pada nama scriptnya`);
+
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
                 } catch (e) { 
                     alert("Terjadi kesalahan transaksi!"); 
                 } finally {
