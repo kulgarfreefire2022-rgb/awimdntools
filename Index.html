@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -258,33 +259,13 @@
                 </div>
 
                 <div x-show="selectedAmount > 0" class="space-y-4">
-    <div class="relative">
-        <input type="file" @change="handleFileUpload" 
-               class="text-xs text-gray-500 w-full mb-4 p-3 border border-dashed border-white/20 rounded-lg hover:border-red-600 transition-colors">
-        
-        <template x-if="selectedFile">
-    <div class="flex items-center justify-between bg-green-500/10 border border-green-500/20 p-2 rounded-lg mt-[-12px] mb-4">
-        <p class="text-[10px] text-green-500 font-bold uppercase flex items-center">
-            <i class="fas fa-check-circle mr-1"></i> 
-            <span class="truncate max-w-[150px]" x-text="selectedFile.name"></span>
-        </p>
-        <button @click="selectedFile = null; document.querySelector('input[type=file]').value = ''" 
-                class="text-[9px] bg-red-500/20 text-red-500 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-all">
-            HAPUS
-        </button>
-    </div>
-</template>
-
-    </div>
-
-    <button @click="sendToWhatsApp" 
-            :disabled="!selectedFile"
-            :class="selectedFile ? 'bg-green-600 opacity-100' : 'bg-gray-800 opacity-50 cursor-not-allowed'"
-            class="w-full py-4 rounded-xl font-black flex items-center justify-center transition-all duration-300">
-        <i class="fab fa-whatsapp mr-2 text-xl"></i> KONFIRMASI ADMIN 
-    </button>
-</div>
-
+                    <input type="file" @change="handleFileUpload" class="text-xs text-gray-500 w-full mb-4">
+                    <button @click="sendToWhatsApp" class="w-full bg-green-600 py-4 rounded-xl font-black flex items-center justify-center">
+                        <i class="fab fa-whatsapp mr-2 text-xl"></i> KONFIRMASI ADMIN 
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div x-show="currentPage === 'history'" x-transition class="container mx-auto px-4 max-w-2xl">
             <div class="stat-card p-6">
@@ -357,7 +338,6 @@ function app() {
         WORKER_URL: "https://cdnscloudflaresecurity.angkawijaya2603.workers.dev",
         currentPage: 'home', 
         sideBar: false, 
-        showNotice: true,
         loading: true, 
         message: '', 
         user: null, 
@@ -627,25 +607,10 @@ function app() {
         },
 
         sendToWhatsApp() {
-    // 1. Cek apakah nominal sudah dipilih
-    if (!this.selectedAmount) {
-        return alert("Silakan pilih nominal Top Up terlebih dahulu!");
-    }
-    
-    // 2. Cek apakah file sudah diunggah (WAJIB)
-    if (!this.selectedFile) {
-        return alert("❌ WAJIB unggah bukti transfer (foto/screenshot) sebelum konfirmasi!");
-    }
-
-    // 3. Jika semua oke, lanjut ke WhatsApp
-    const msg = `Halo Admin AWIMEDAN, saya ingin konfirmasi Top Up.\n\n` +
-                `Email: ${this.user.email}\n` +
-                `Nominal: Rp ${this.selectedAmount.toLocaleString()}\n\n` +
-                `(KIRIM FOTO BUKTI TRANSFER SETELAH PESAN INI)`;
-                
-    window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
+            if (!this.selectedAmount) return alert("Pilih nominal!");
+            const msg = `Halo Admin AWIMEDAN, saya ingin konfirmasi Top Up. (KIRIM KEMBALI BUKTI TRANSFER AGAR PROSES DIKONFIRMASI)\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
+            window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
+        },
 
         logoutGoogle() { 
             firebase.auth().signOut().then(() => location.reload()); 
@@ -701,26 +666,7 @@ function app() {
 })();
 </script>
 
-<div x-show="showNotice" x-transition.opacity class="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-    <div @click.away="showNotice = false" class="stat-card max-w-sm w-full p-8 border-red-600/50 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
-        
-        <div class="text-center">
-            <i class="fas fa-bullhorn text-4xl accent-red mb-4"></i>
-            <h3 class="text-xl font-black italic uppercase mb-2">PENGUMUMAN TOKO</h3>
-            <div class="h-px bg-white/10 w-16 mx-auto mb-4"></div>
-            <p class="text-gray-400 text-xs leading-relaxed mb-6">
-                Selamat datang di <span class="accent-red font-bold">AWIMEDAN STORE</span>. 
-                Gunakan fitur Injector dengan bijak. Pastikan saldo mencukupi sebelum membeli lisensi premium!
-            </p>
-            
-            <button @click="showNotice = false" class="w-full btn-primary py-3 rounded-lg font-black italic text-xs uppercase tracking-widest">
-                SAYA MENGERTI
-            </button>
-        </div>
-    </div>
-</div>
-
 
 </body>
 </html>
+
