@@ -392,7 +392,7 @@ function app() {
             }
         },
 
-        // --- 2. TRANSAKSI ---
+                // --- 2. TRANSAKSI (VERSI OPTIMAL) ---
         async beliProduk(productName) {
             if (!this.user) return alert("Silakan Login terlebih dahulu!");
             const product = this.products.find(p => p.name === productName);
@@ -402,58 +402,59 @@ function app() {
             if (confirm(`Konfirmasi pembelian ${productName}?`)) {
                 this.loading = true;
                 try {
-                    // Potong Saldo
+                    // 1. Potong Saldo
                     await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
                     
-                    // Ambil detail file dari Worker
+                    // 2. Ambil detail file dari Worker
                     const res = await fetch(this.WORKER_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
                     });
                     const detail = await res.json();
 
-                    // Simpan Riwayat
+                    // 3. Simpan Riwayat
                     await firebase.database().ref('history/' + this.user.uid).push().set({ 
                         productName, price: product.price, date: Date.now() 
                     });
 
                     this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-                                        // --- SOLUSI ANTI 429 & AUTO DOWNLOAD ---
+                    // --- LOGIKA DOWNLOAD ANTI 404 & 429 ---
+                    const fileName = productName.replace(/\s+/g, '_') + ".lua";
+                    
                     try {
-                        const response = await fetch(detail.link);
-                        if (!response.ok) throw new Error("Gagal mengambil file");
-                        
-                        const blob = await response.blob();
+                        // Coba download via Fetch (Blob) agar tidak buka tab baru
+                        const fileRes = await fetch(detail.link);
+                        if (!fileRes.ok) throw new Error();
+
+                        const blob = await fileRes.blob();
                         const url = window.URL.createObjectURL(blob);
-                        
-                        const link = document.createElement('a');
-                        link.href = url;
-                        // Nama file yang akan tersimpan di HP
-                        link.download = productName.replace(/\s+/g, '_') + ".lua"; 
-                        
-                        document.body.appendChild(link);
-                        link.click();
-                        
-                        // Bersihkan memori
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
                         window.URL.revokeObjectURL(url);
-                        document.body.removeChild(link);
-                    } catch (downloadErr) {
-                        console.error("Metode Blob gagal, mencoba fallback...");
-                        // Fallback jika fetch diblokir CORS:
-                        window.location.href = detail.link;
+                        a.remove();
+                    } catch (err) {
+                        // Fallback: Jika Fetch gagal (CORS), gunakan Iframe tersembunyi
+                        // Ini cara paling aman untuk memaksa Android download file Raw
+                        const ifrm = document.createElement('iframe');
+                        ifrm.style.display = 'none';
+                        ifrm.src = detail.link; 
+                        document.body.appendChild(ifrm);
+                        setTimeout(() => ifrm.remove(), 5000);
                     }
-                    // ------------------------------------------
 
-
-                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\nSilahkan SCREENSHOOT. Jika file bernama .txt, hapus .txt nya agar bisa terbaca di GameGuardian.`);
                 } catch (e) { 
-                    alert("Terjadi kesalahan transaksi!"); 
+                    alert("Terjadi kesalahan transaksi! Pastikan koneksi stabil."); 
                 } finally {
                     this.loading = false;
                 }
             }
         },
+
 
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
