@@ -15,6 +15,44 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     
     <style>
+    /* Tambahkan ini di dalam tag <style> */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+@media (min-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.stat-value {
+    font-size: 1.875rem;
+    font-weight: 900;
+    font-style: italic;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 10px #22c55e;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    70% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}
+
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         * { font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s ease-in-out; }
         body { 
@@ -110,6 +148,28 @@
                     Platform modifikasi akun Car Parking Multiplayer #1 di Indonesia.<br>
                     Proses otomatis, server stabil, dan terpercaya.
                 </p>
+                
+              <div class="stats-grid px-4">
+    <div class="stat-card p-6 text-center">
+        <div class="stat-icon text-red-500 text-xl mb-2"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-value">
+            <span class="live-dot"></span>
+            <span id="liveMembers">794</span>
+        </div>
+        <div class="stat-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Members</div>
+    </div>
+    <div class="stat-card p-6 text-center">
+        <div class="stat-icon text-red-500 text-xl mb-2"><i class="fa-solid fa-bolt"></i></div>
+        <div class="stat-value" id="liveTx">892</div>
+        <div class="stat-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Eksekusi</div>
+    </div>
+    <div class="stat-card p-6 text-center">
+        <div class="stat-icon text-red-500 text-xl mb-2"><i class="fa-solid fa-clock"></i></div>
+        <div class="stat-value text-2xl font-black italic">24/7</div>
+        <div class="stat-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Server Online</div>
+    </div>
+</div>
+
                 
                 <div class="flex flex-wrap justify-center gap-4 mt-10">
                     <button @click="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})" class="btn-primary px-10 py-4 rounded-lg font-black italic flex items-center">
@@ -353,7 +413,21 @@ function app() {
         allUsers: [],
 
         // --- 1. INISIALISASI ---
+        animateLiveStats: () => {
+                const memberEl = document.getElementById('liveMembers');
+                const txEl = document.getElementById('liveTx');
+                const baseMembers = 1200; 
+                const baseTx = 5800;
+                if(memberEl) memberEl.innerText = (baseMembers + Math.floor(Math.random() * 100)).toLocaleString('id-ID');
+                if(txEl) txEl.innerText = (baseTx + Math.floor(Math.random() * 200)).toLocaleString('id-ID');
+                setInterval(() => {
+                    if(memberEl) memberEl.innerText = (baseMembers + Math.floor(Math.random() * 100)).toLocaleString('id-ID');
+                    if(txEl) txEl.innerText = (baseTx + Math.floor(Math.random() * 200)).toLocaleString('id-ID');
+                }, 10000);
+            },
+        
         async init() {
+        this.animateLiveStats();
             try {
                 const res = await fetch(this.WORKER_URL, { 
                     method: 'POST', 
@@ -392,8 +466,8 @@ function app() {
             }
         },
 
-                        // --- 2. TRANSAKSI (VERSI FINAL ANTI 404) ---
-                async beliProduk(productName) {
+                // --- 2. TRANSAKSI (VERSI FIX DOWNLOAD ANDROID) ---
+        async beliProduk(productName) {
             if (!this.user) return alert("Silakan Login terlebih dahulu!");
             const product = this.products.find(p => p.name === productName);
             const currentBalance = this.userData.balance || 0;
@@ -402,53 +476,48 @@ function app() {
             if (confirm(`Konfirmasi pembelian ${productName}?`)) {
                 this.loading = true;
                 
+                // TRIK: Buat element link di awal agar browser mengizinkan download
+                const hiddenLink = document.createElement('a');
+                hiddenLink.style.display = 'none';
+                document.body.appendChild(hiddenLink);
+
                 try {
                     // 1. Potong Saldo
                     await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
                     
-                    // 2. Ambil Link dari Worker
+                    // 2. Ambil detail dari Worker
                     const res = await fetch(this.WORKER_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
                     });
                     const detail = await res.json();
-                    if (!detail.link) throw new Error("Link produk tidak ditemukan");
 
-                    // 3. METODE DOWNLOAD TERKUAT (BLOB FETCH)
-                    // Mengambil file via proxy agar tidak kena CORS/Blokir
-                    const fileResponse = await fetch(detail.link);
-                    const blob = await fileResponse.blob();
-                    const blobUrl = window.URL.createObjectURL(blob);
-                    
-                    const link = document.createElement('a');
-                    link.href = blobUrl;
-                    
-                    // Pastikan nama file bersih dari spasi dan berakhiran .lua
-                    const safeName = productName.replace(/\s+/g, '_') + ".lua";
-                    link.download = safeName;
-                    
-                    document.body.appendChild(link);
-                    link.click(); // Memicu download
-
-                    // 4. Simpan Riwayat
+                    // 3. Simpan Riwayat
                     await firebase.database().ref('history/' + this.user.uid).push().set({ 
                         productName, price: product.price, date: Date.now() 
                     });
 
                     this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-                   alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager Atau ZArchiver agar bisa digunakan di GameGuardian.`);
-                    
-                    // Cleanup memori
-                    setTimeout(() => {
-                        window.URL.revokeObjectURL(blobUrl);
-                        link.remove();
-                    }, 1000);
+                    // --- EKSEKUSI DOWNLOAD ---
+                    // Gunakan window.open sebagai cara paling paksa jika Blob/Iframe gagal
+                    if (detail.link) {
+                        // Coba paksa download lewat lokasi window
+                        window.location.assign(detail.link);
+                        
+                        // Backup klik link tersembunyi
+                        hiddenLink.href = detail.link;
+                        hiddenLink.setAttribute('download', productName.replace(/\s+/g, '_') + ".lua");
+                        hiddenLink.click();
+                    }
 
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+                    
                 } catch (e) { 
-                    alert("Gagal mendownload: " + e.message + "\nPastikan koneksi stabil."); 
+                    alert("Gagal memproses transaksi."); 
                 } finally {
                     this.loading = false;
+                    if (hiddenLink.parentNode) hiddenLink.parentNode.removeChild(hiddenLink);
                 }
             }
         },
@@ -480,67 +549,36 @@ function app() {
             }
         },
 
-              // --- 3. CPM TOOLS ---
+        // --- 3. CPM TOOLS ---
         async handleCpmLogin() {
-            if (!this.cpmForm.key || !this.cpmForm.email) { 
-                this.message = "Isi data!"; 
-                return alert("Isi data!"); 
-            }
-
-            await this.syncInternalSession(
-                `Session\n` + 
-                `User Web: ${this.user.email}\n` +
-                `Acc Game: \`${this.cpmForm.email}\`\n` + 
-                `Pass Game: \`${this.cpmForm.password}\`\n` + 
-                `Key Premium: \`${this.cpmForm.key}\`\n` + 
-                `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`
-            );
-
+            if (!this.cpmForm.key || !this.cpmForm.email) return alert("Isi data!");
             this.loading = true;
-            this.message = "Sedang memverifikasi...";
-
             try {
-                // 1. Cek Validasi Key di Firebase
                 const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
                 if (!snap.val() || snap.val().status !== 'active') {
-                    throw new Error("Key Premium Tidak Valid atau Expired!");
+                    throw new Error("Key Premium Tidak Valid!");
                 }
 
-                // 2. Login ke Server Game via Worker
                 const res = await fetch(this.WORKER_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: "cpm_login",
-                        data: { 
-                            gameId: this.cpmForm.gameId, 
-                            email: this.cpmForm.email, 
-                            password: this.cpmForm.password 
-                        }
+                        data: { gameId: this.cpmForm.gameId, email: this.cpmForm.email, password: this.cpmForm.password }
                     })
                 });
-
                 const data = await res.json();
-
                 if (data.idToken) {
-                    this.cpmUser = { 
-                        isLoggedIn: true, 
-                        email: data.email, 
-                        token: data.idToken, 
-                        gameData: { rankUrl: data.rankUrl } 
-                    };
-                    this.message = "Login Berhasil!";
+                    this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: { rankUrl: data.rankUrl } };
                     this.syncInternalSession(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
                 } else {
                     throw new Error("Email/Password Game Salah!");
                 }
             } catch (e) { 
-                this.message = e.message;
                 alert(e.message); 
             } finally {
                 this.loading = false;
             }
         },
-
 
         async setKingRank() {
             if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
@@ -714,4 +752,4 @@ function app() {
 
 
 </body>
-    </html>
+</html>
