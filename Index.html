@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -420,21 +419,30 @@ function app() {
 
                     this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
 
-                    // --- BAGIAN YANG DIUBAH (Auto Download) ---
-                    const link = document.createElement('a');
-                    link.href = detail.link;
-                    link.setAttribute('download', productName + ".lua");
-                    link.setAttribute('target', '_blank'); // Menjamin pemicu download di Chrome Mobile
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    
-                    // Trigger klik
-                    link.click();
-                    
-                    // Hapus elemen setelah jeda singkat
-                    setTimeout(() => {
+                                        // --- SOLUSI ANTI 429 & AUTO DOWNLOAD ---
+                    try {
+                        const response = await fetch(detail.link);
+                        if (!response.ok) throw new Error("Gagal mengambil file");
+                        
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = url;
+                        // Nama file yang akan tersimpan di HP
+                        link.download = productName.replace(/\s+/g, '_') + ".lua"; 
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        
+                        // Bersihkan memori
+                        window.URL.revokeObjectURL(url);
                         document.body.removeChild(link);
-                    }, 150);
+                    } catch (downloadErr) {
+                        console.error("Metode Blob gagal, mencoba fallback...");
+                        // Fallback jika fetch diblokir CORS:
+                        window.location.href = detail.link;
+                    }
                     // ------------------------------------------
 
 
@@ -679,4 +687,5 @@ function app() {
 
 </body>
 </html>
+
 
