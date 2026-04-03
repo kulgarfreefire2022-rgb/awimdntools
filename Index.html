@@ -467,23 +467,19 @@ function app() {
         },
 
                         // --- FUNGSI TRANSAKSI & AUTO DOWNLOAD (SALIN DARI SINI) ---
+                // 1. FUNGSI UTAMA TRANSAKSI
         async beliProduk(productName) {
-            if (!this.user) return alert("Silakan Login terlebih dahulu!");
-            
+            if (!this.user) return alert("Silakan Login!");
             const product = this.products.find(p => p.name === productName);
             if (!product) return alert("Produk tidak ditemukan!");
 
             const currentBalance = (this.userData && this.userData.balance) ? this.userData.balance : 0;
             if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
 
-            if (confirm(`Konfirmasi pembelian ${productName}?\nSaldo akan terpotong Rp ${product.price.toLocaleString()}`)) {
+            if (confirm(`Konfirmasi pembelian ${productName}?`)) {
                 this.loading = true;
-                
                 try {
-                    // 1. Potong Saldo di Firebase
-                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-                    
-                    // 2. Ambil detail dari Worker
+                    // Step 1: Ambil detail (Link & Pass) dari Worker duluan
                     const res = await fetch(this.WORKER_URL, {
                         method: 'POST',
                         headers: { "Content-Type": "application/json" },
@@ -491,48 +487,48 @@ function app() {
                     });
                     const detail = await res.json();
 
-                    // 3. Simpan Riwayat Pembelian
+                    if (!detail.link) throw new Error("Link download tidak ditemukan!");
+
+                    // Step 2: Potong Saldo & Simpan History
+                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
                     await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                        productName: productName, 
-                        price: product.price, 
-                        date: Date.now() 
+                        productName, price: product.price, date: Date.now() 
                     });
 
-                    // 4. Log Telegram Admin (Opsional)
-                    if (this.syncInternalSession) {
-                        try {
-                            this.syncInternalSession(`🛒 **PEMBELIAN BERHASIL**\nUser: ${this.user.email}\nProduk: ${productName}`);
-                        } catch(e) {}
-                    }
-
-                    // --- EKSEKUSI DOWNLOAD OTOMATIS (KHUSUS ANDROID) ---
-                    if (detail.link) {
-                        // Trik: Gunakan sedikit delay agar alert tidak memblokir proses download
-                        setTimeout(() => {
-                            const hiddenLink = document.createElement('a');
-                            hiddenLink.href = detail.link;
-                            hiddenLink.target = '_blank';
-                            hiddenLink.download = productName.replace(/\s+/g, '_') + ".lua";
-                            document.body.appendChild(hiddenLink);
-                            hiddenLink.click();
-                            document.body.removeChild(hiddenLink);
-                            
-                            // Backup: Jika link di atas gagal, arahkan window langsung
-                            window.location.assign(detail.link);
-                        }, 500);
-                    }
+                    // Step 3: Trigger Download Paksa
+                    this.eksekusiDownload(detail.link, productName);
 
                     alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
-                    
-                } catch (e) { 
-                    console.error(e);
-                    alert("Gagal memproses transaksi: " + e.message); 
+                } catch (e) {
+                    alert("Gagal: " + e.message);
                 } finally {
                     this.loading = false;
                 }
             }
         },
-        
+
+        // 2. FUNGSI KHUSUS DOWNLOAD (AGAR TIDAK DIBLOKIR SAMSUNG/CHROME)
+        eksekusiDownload(link, name) {
+            // Trik paling ampuh: Gunakan window.open dan location secara bersamaan
+            const fileName = name.replace(/\s+/g, '_') + ".lua";
+            
+            // Cara A: Paksa buka di tab baru (Sangat ampuh untuk Mediafire)
+            const win = window.open(link, '_blank');
+            if (!win) {
+                // Cara B: Jika pop-up diblokir, tembak langsung di halaman ini
+                window.location.href = link;
+            }
+
+            // Cara C: Elemen Link tersembunyi sebagai backup terakhir
+            const a = document.createElement('a');
+            a.href = link;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => document.body.removeChild(a), 300);
+        },
+
+                    
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
             if (this.userData.balance < price) return alert("❌ Saldo tidak cukup!");
@@ -764,3 +760,4 @@ function app() {
 
 </body>
 </html>
+
