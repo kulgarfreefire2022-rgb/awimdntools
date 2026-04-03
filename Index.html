@@ -473,7 +473,7 @@ function app() {
     const product = this.products.find(p => p.name === productName);
     if (!product) return alert("Produk tidak ditemukan!");
     
-    if (this.userData.balance < product.price) {
+    if ((this.userData.balance || 0) < product.price) {
         return alert("❌ Saldo Anda tidak cukup! Silakan Top Up.");
     }
 
@@ -489,11 +489,11 @@ function app() {
             
             const result = await res.json();
 
-            if (result.fileData) {
+            if (result && result.fileData) {
                 // 2. Potong Saldo di Firebase
                 await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
 
-                // 3. PROSES AUTO-DOWNLOAD (BLOB) - Sangat ampuh di Android
+                // 3. PROSES AUTO-DOWNLOAD (BLOB)
                 const blob = new Blob([result.fileData], { type: 'text/plain' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -507,7 +507,7 @@ function app() {
                 // Bersihkan memory
                 setTimeout(() => {
                     window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+                    if (document.body.contains(a)) document.body.removeChild(a);
                 }, 100);
 
                 // 4. Simpan Riwayat di Firebase
@@ -517,10 +517,14 @@ function app() {
                     date: Date.now() 
                 });
                 
-                // 5. Kirim Log ke Telegram Admin
-                this.syncInternalSession(`🛒 **PEMBELIAN SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}\nSisa Saldo: Rp ${(this.userData.balance - product.price).toLocaleString()}`);
+                // 5. Kirim Log ke Telegram (Pakai try-catch agar kalau fungsi ini gagal, web tidak mati)
+                try {
+                    if (this.syncInternalSession) {
+                        this.syncInternalSession(`🛒 **PEMBELIAN SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                    }
+                } catch (logErr) { console.log("Telegram log failed"); }
 
-                alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
             } else {
                 throw new Error(result.error || "Gagal mengambil data dari server.");
             }
