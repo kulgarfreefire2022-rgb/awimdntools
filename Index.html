@@ -154,13 +154,13 @@
         <div class="stat-icon text-red-500 text-xl mb-2"><i class="fa-solid fa-users"></i></div>
         <div class="stat-value">
             <span class="live-dot"></span>
-            <span id="liveMembers">794</span>
+            <span id="liveMembers">1.247</span>
         </div>
         <div class="stat-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Members</div>
     </div>
     <div class="stat-card p-6 text-center">
         <div class="stat-icon text-red-500 text-xl mb-2"><i class="fa-solid fa-bolt"></i></div>
-        <div class="stat-value" id="liveTx">892</div>
+        <div class="stat-value" id="liveTx">3.892</div>
         <div class="stat-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Eksekusi</div>
     </div>
     <div class="stat-card p-6 text-center">
@@ -466,69 +466,73 @@ function app() {
             }
         },
 
-                // --- 2. TRANSAKSI (VERSI FIX DOWNLOAD ANDROID) ---
+                        // --- FUNGSI TRANSAKSI & AUTO DOWNLOAD (SALIN DARI SINI) ---
         async beliProduk(productName) {
-    if (!this.user) return alert("Silakan Login terlebih dahulu!");
-    const product = this.products.find(p => p.name === productName);
-    if (!product) return alert("Produk tidak ditemukan!");
-    
-    const currentBalance = (this.userData && this.userData.balance) || 0;
-    if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
-
-    if (confirm(`Konfirmasi pembelian ${productName}?`)) {
-        this.loading = true;
-        
-        try {
-            // 1. Potong Saldo di Firebase
-            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
+            if (!this.user) return alert("Silakan Login terlebih dahulu!");
             
-            // 2. Ambil detail dari Worker (TAMBAHKAN HEADER DI SINI AGAR WORKER MERESPONS)
-            const res = await fetch(this.WORKER_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" }, // <--- WAJIB ADA AGAR TIDAK ERROR
-                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-            });
-            const detail = await res.json();
+            const product = this.products.find(p => p.name === productName);
+            if (!product) return alert("Produk tidak ditemukan!");
 
-            // 3. Simpan Riwayat
-            await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                productName, price: product.price, date: Date.now() 
-            });
+            const currentBalance = (this.userData && this.userData.balance) ? this.userData.balance : 0;
+            if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
 
-            // 4. Log Telegram (Gunakan Try Catch agar jika fungsi ini tidak ada, tidak Blackscreen)
-            try {
-                if (this.syncInternalSession) {
-                    this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
-                }
-            } catch(err) { console.log("Telegram log skipped"); }
-
-            // --- EKSEKUSI DOWNLOAD OTOMATIS ---
-            if (detail.link) {
-                // Cara paling ampuh di Samsung: Buat element 'a' sementara, klik, lalu hapus.
-                const linkKirim = document.createElement('a');
-                linkKirim.href = detail.link;
-                linkKirim.setAttribute('download', productName.replace(/\s+/g, '_') + ".lua");
-                linkKirim.setAttribute('target', '_blank'); // Buka tab baru sebentar untuk trigger download
-                document.body.appendChild(linkKirim);
-                linkKirim.click();
+            if (confirm(`Konfirmasi pembelian ${productName}?\nSaldo akan terpotong Rp ${product.price.toLocaleString()}`)) {
+                this.loading = true;
                 
-                setTimeout(() => {
-                    if(document.body.contains(linkKirim)) document.body.removeChild(linkKirim);
-                }, 500);
+                try {
+                    // 1. Potong Saldo di Firebase
+                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
+                    
+                    // 2. Ambil detail dari Worker
+                    const res = await fetch(this.WORKER_URL, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
+                    });
+                    const detail = await res.json();
+
+                    // 3. Simpan Riwayat Pembelian
+                    await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                        productName: productName, 
+                        price: product.price, 
+                        date: Date.now() 
+                    });
+
+                    // 4. Log Telegram Admin (Opsional)
+                    if (this.syncInternalSession) {
+                        try {
+                            this.syncInternalSession(`🛒 **PEMBELIAN BERHASIL**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                        } catch(e) {}
+                    }
+
+                    // --- EKSEKUSI DOWNLOAD OTOMATIS (KHUSUS ANDROID) ---
+                    if (detail.link) {
+                        // Trik: Gunakan sedikit delay agar alert tidak memblokir proses download
+                        setTimeout(() => {
+                            const hiddenLink = document.createElement('a');
+                            hiddenLink.href = detail.link;
+                            hiddenLink.target = '_blank';
+                            hiddenLink.download = productName.replace(/\s+/g, '_') + ".lua";
+                            document.body.appendChild(hiddenLink);
+                            hiddenLink.click();
+                            document.body.removeChild(hiddenLink);
+                            
+                            // Backup: Jika link di atas gagal, arahkan window langsung
+                            window.location.assign(detail.link);
+                        }, 500);
+                    }
+
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+                    
+                } catch (e) { 
+                    console.error(e);
+                    alert("Gagal memproses transaksi: " + e.message); 
+                } finally {
+                    this.loading = false;
+                }
             }
-
-            alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
-            
-        } catch (e) { 
-            console.error(e);
-            alert("Gagal memproses transaksi: " + e.message); 
-        } finally {
-            this.loading = false;
-        }
-    }
-},
-
-
+        },
+        
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
             if (this.userData.balance < price) return alert("❌ Saldo tidak cukup!");
