@@ -468,61 +468,65 @@ function app() {
 
                 // --- 2. TRANSAKSI (VERSI FIX DOWNLOAD ANDROID) ---
         async beliProduk(productName) {
-    if (!this.user) return alert("Silakan Login Terlebih Dahulu!");
-    
-    // Cari produk
+    if (!this.user) return alert("Silakan Login terlebih dahulu!");
     const product = this.products.find(p => p.name === productName);
     if (!product) return alert("Produk tidak ditemukan!");
     
-    // Cek saldo (tambah proteksi || 0)
-    const saldo = this.userData ? (this.userData.balance || 0) : 0;
-    if (saldo < product.price) {
-        return alert("❌ Saldo tidak cukup!");
-    }
+    const currentBalance = (this.userData && this.userData.balance) || 0;
+    if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
 
-    if (!confirm(`Beli ${productName}?`)) return;
-
-    this.loading = true;
-    try {
-        const res = await fetch(this.WORKER_URL, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-        });
+    if (confirm(`Konfirmasi pembelian ${productName}?`)) {
+        this.loading = true;
         
-        const result = await res.json();
-
-        if (result && result.fileData) {
-            // 1. Potong Saldo
+        try {
+            // 1. Potong Saldo di Firebase
             await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-
-            // 2. Download File
-            const blob = new Blob([result.fileData], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = result.fileName || "script_awimedan.lua";
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
             
-            // 3. Simpan History
+            // 2. Ambil detail dari Worker (TAMBAHKAN HEADER DI SINI AGAR WORKER MERESPONS)
+            const res = await fetch(this.WORKER_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" }, // <--- WAJIB ADA AGAR TIDAK ERROR
+                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
+            });
+            const detail = await res.json();
+
+            // 3. Simpan Riwayat
             await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                productName: productName, 
-                price: product.price, 
-                date: Date.now() 
+                productName, price: product.price, date: Date.now() 
             });
 
+            // 4. Log Telegram (Gunakan Try Catch agar jika fungsi ini tidak ada, tidak Blackscreen)
+            try {
+                if (this.syncInternalSession) {
+                    this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                }
+            } catch(err) { console.log("Telegram log skipped"); }
+
+            // --- EKSEKUSI DOWNLOAD OTOMATIS ---
+            if (detail.link) {
+                // Cara paling ampuh di Samsung: Buat element 'a' sementara, klik, lalu hapus.
+                const linkKirim = document.createElement('a');
+                linkKirim.href = detail.link;
+                linkKirim.setAttribute('download', productName.replace(/\s+/g, '_') + ".lua");
+                linkKirim.setAttribute('target', '_blank'); // Buka tab baru sebentar untuk trigger download
+                document.body.appendChild(linkKirim);
+                linkKirim.click();
+                
+                setTimeout(() => {
+                    if(document.body.contains(linkKirim)) document.body.removeChild(linkKirim);
+                }, 500);
+            }
+
             alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
-        } else {
-            alert("Gagal ambil file: " + (result.error || "Unknown error"));
+            
+        } catch (e) { 
+            console.error(e);
+            alert("Gagal memproses transaksi: " + e.message); 
+        } finally {
+            this.loading = false;
         }
-    } catch (e) {
-        alert("Error: " + e.message);
-    } finally {
-        this.loading = false;
     }
-}
+},
 
 
         async beliKey(keyName, price) {
@@ -756,5 +760,4 @@ function app() {
 
 </body>
 </html>
-
 
