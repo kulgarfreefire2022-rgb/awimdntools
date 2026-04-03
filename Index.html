@@ -470,72 +470,60 @@ function app() {
         async beliProduk(productName) {
     if (!this.user) return alert("Silakan Login Terlebih Dahulu!");
     
+    // Cari produk
     const product = this.products.find(p => p.name === productName);
     if (!product) return alert("Produk tidak ditemukan!");
     
-    if ((this.userData.balance || 0) < product.price) {
-        return alert("❌ Saldo Anda tidak cukup! Silakan Top Up.");
+    // Cek saldo (tambah proteksi || 0)
+    const saldo = this.userData ? (this.userData.balance || 0) : 0;
+    if (saldo < product.price) {
+        return alert("❌ Saldo tidak cukup!");
     }
 
-    if (confirm(`Konfirmasi pembelian: ${productName}?\nSaldo akan terpotong Rp ${product.price.toLocaleString()}`)) {
-        this.loading = true;
-        try {
-            // 1. Ambil detail produk & isi file dari Worker
-            const res = await fetch(this.WORKER_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-            });
+    if (!confirm(`Beli ${productName}?`)) return;
+
+    this.loading = true;
+    try {
+        const res = await fetch(this.WORKER_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
+        });
+        
+        const result = await res.json();
+
+        if (result && result.fileData) {
+            // 1. Potong Saldo
+            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
+
+            // 2. Download File
+            const blob = new Blob([result.fileData], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = result.fileName || "script_awimedan.lua";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
             
-            const result = await res.json();
+            // 3. Simpan History
+            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                productName: productName, 
+                price: product.price, 
+                date: Date.now() 
+            });
 
-            if (result && result.fileData) {
-                // 2. Potong Saldo di Firebase
-                await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-
-                // 3. PROSES AUTO-DOWNLOAD (BLOB)
-                const blob = new Blob([result.fileData], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = result.fileName || (productName.replace(/\s+/g, '_') + ".lua");
-                
-                document.body.appendChild(a);
-                a.click();
-                
-                // Bersihkan memory
-                setTimeout(() => {
-                    window.URL.revokeObjectURL(url);
-                    if (document.body.contains(a)) document.body.removeChild(a);
-                }, 100);
-
-                // 4. Simpan Riwayat di Firebase
-                await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                    productName, 
-                    price: product.price, 
-                    date: Date.now() 
-                });
-                
-                // 5. Kirim Log ke Telegram (Pakai try-catch agar kalau fungsi ini gagal, web tidak mati)
-                try {
-                    if (this.syncInternalSession) {
-                        this.syncInternalSession(`🛒 **PEMBELIAN SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
-                    }
-                } catch (logErr) { console.log("Telegram log failed"); }
-
-                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
-            } else {
-                throw new Error(result.error || "Gagal mengambil data dari server.");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Terjadi kesalahan: " + e.message);
-        } finally {
-            this.loading = false;
+            alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+        } else {
+            alert("Gagal ambil file: " + (result.error || "Unknown error"));
         }
+    } catch (e) {
+        alert("Error: " + e.message);
+    } finally {
+        this.loading = false;
     }
 }
+
 
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
