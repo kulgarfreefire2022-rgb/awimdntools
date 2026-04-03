@@ -467,57 +467,60 @@ function app() {
         },
 
                 // --- 2. TRANSAKSI (VERSI FIX DOWNLOAD ANDROID) ---
-        // --- BAGIAN TRANSAKSI YANG SUDAH DIPERBAIKI ---
-async beliProduk(productName) {
-    if (!this.user) return alert("Silakan Login!");
-    const product = this.products.find(p => p.name === productName);
-    if (this.userData.balance < product.price) return alert("❌ Saldo tidak cukup!");
+        async beliProduk(productName) {
+            if (!this.user) return alert("Silakan Login terlebih dahulu!");
+            const product = this.products.find(p => p.name === productName);
+            const currentBalance = this.userData.balance || 0;
+            if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
 
-    if (confirm(`Konfirmasi pembelian ${productName}?`)) {
-        this.loading = true;
-        try {
-            // 1. Minta data file ke Worker
-            const res = await fetch(this.WORKER_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-            });
-            const result = await res.json();
-
-            if (result.fileData) {
-                // 2. Potong Saldo di Firebase hanya jika file berhasil diambil
-                await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
-
-                // 3. PROSES DOWNLOAD OTOMATIS (BLOB)
-                const blob = new Blob([result.fileData], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = result.fileName; 
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
+            if (confirm(`Konfirmasi pembelian ${productName}?`)) {
+                this.loading = true;
                 
-                // 4. Catat riwayat & kirim log ke Telegram
-                await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                    productName, price: product.price, date: Date.now() 
-                });
-                
-                this.syncInternalSession(`🛒 **SUKSES BELI SCRIPT**\nUser: ${this.user.email}\nProduk: ${productName}`);
+                // TRIK: Buat element link di awal agar browser mengizinkan download
+                const hiddenLink = document.createElement('a');
+                hiddenLink.style.display = 'none';
+                document.body.appendChild(hiddenLink);
 
-                // Menggunakan result.pass sesuai kiriman Worker
-                alert(`✅ PEMBELIAN BERHASIL!\n\nFile: ${result.fileName}\nPASS SCRIPT: ${result.pass}\n\nSilakan cek folder Download. Jika file berakhiran .txt, hapus .txt nya agar bisa dibaca GameGuardian.`);
-            } else {
-                throw new Error(result.error || "Gagal mengambil data file.");
+                try {
+                    // 1. Potong Saldo
+                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - product.price);
+                    
+                    // 2. Ambil detail dari Worker
+                    const res = await fetch(this.WORKER_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
+                    });
+                    const detail = await res.json();
+
+                    // 3. Simpan Riwayat
+                    await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                        productName, price: product.price, date: Date.now() 
+                    });
+
+                    this.syncInternalSession(`🛒 **TRANSAKSI SUKSES**\nUser: ${this.user.email}\nProduk: ${productName}`);
+
+                    // --- EKSEKUSI DOWNLOAD ---
+                    // Gunakan window.open sebagai cara paling paksa jika Blob/Iframe gagal
+                    if (detail.link) {
+                        // Coba paksa download lewat lokasi window
+                        window.location.assign(detail.link);
+                        
+                        // Backup klik link tersembunyi
+                        hiddenLink.href = detail.link;
+                        hiddenLink.setAttribute('download', productName.replace(/\s+/g, '_') + ".lua");
+                        hiddenLink.click();
+                    }
+
+                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
+                    
+                } catch (e) { 
+                    alert("Gagal memproses transaksi."); 
+                } finally {
+                    this.loading = false;
+                    if (hiddenLink.parentNode) hiddenLink.parentNode.removeChild(hiddenLink);
+                }
             }
-        } catch (e) {
-            alert("Terjadi kesalahan: " + e.message);
-        } finally {
-            this.loading = false;
-        }
-    }
-}
-
+        },
 
         async beliKey(keyName, price) {
             if (!this.user) return alert("Silakan Login!");
