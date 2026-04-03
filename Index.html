@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -580,31 +579,91 @@ async beliProduk(productName) {
 
                     
         async beliKey(keyName, price) {
-            if (!this.user) return alert("Silakan Login!");
-            if (this.userData.balance < price) return alert("❌ Saldo tidak cukup!");
+    if (!this.user) return Swal.fire('Oops!', 'Silakan Login Terlebih Dahulu!', 'warning');
+    
+    const currentBalance = (this.userData && this.userData.balance) ? this.userData.balance : 0;
+    if (currentBalance < price) return Swal.fire('Saldo Kurang', 'Silakan Top Up terlebih dahulu!', 'error');
 
-            if (confirm(`Beli Lisensi ${keyName}?`)) {
-                this.loading = true;
-                try {
-                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => b - price);
-                    const randomPart = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-                    const generatedKey = `AW-${randomPart()}-${randomPart()}`;
-                    let durationDays = keyName.includes('7 DAY') ? 7 : keyName.includes('1 MONTH') ? 30 : 3650;
-                    const expiredAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
+    const confirmBuy = await Swal.fire({
+        title: 'KONFIRMASI',
+        text: `Beli Lisensi ${keyName} seharga Rp ${price.toLocaleString()}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ff3131',
+        cancelButtonColor: '#333',
+        confirmButtonText: 'YA, BELI',
+        background: '#0a0a0a',
+        color: '#fff'
+    });
 
-                    await firebase.database().ref('keys/' + generatedKey).set({
-                        status: 'active', type: keyName, owner: this.user.email, uid: this.user.uid, expiredAt: expiredAt
-                    });
+    if (confirmBuy.isConfirmed) {
+        this.loading = true;
+        try {
+            // Potong Saldo
+            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - price);
+            
+            // Generate Key & Expired
+            const randomPart = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+            const generatedKey = `AW-${randomPart()}-${randomPart()}`;
+            
+            let durationDays = keyName.includes('7 DAY') ? 7 : keyName.includes('1 MONTH') ? 30 : 3650;
+            const expiredAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
+            const expString = new Date(expiredAt).toLocaleString('id-ID');
 
-                    this.syncInternalSession(`🔑 **KEY GENERATED**\nUser: ${this.user.email}\nKey: \`${generatedKey}\nExp: \`${expiredAt}\``);
-                    alert(`✅ BERHASIL! Silahkan SCREENSHOOT Agar Tidak Lupa\n\nKEY: ${generatedKey}\nExp: \`${expiredAt}\`);
-                } catch (e) { 
-                    alert("Gagal generate key!"); 
-                } finally {
-                    this.loading = false;
-                }
-            }
-        },
+            // Simpan ke Database
+            await firebase.database().ref('keys/' + generatedKey).set({
+                status: 'active', 
+                type: keyName, 
+                owner: this.user.email, 
+                uid: this.user.uid, 
+                expiredAt: expiredAt
+            });
+
+            // Kirim Log ke Telegram (Tanpa Backtick yang merusak kode)
+            this.syncInternalSession("🔑 **KEY GENERATED**\nUser: " + this.user.email + "\nKey: `" + generatedKey + "`\nExp: " + expString);
+
+            // Tampilan SweetAlert dengan Tombol Salin
+            await Swal.fire({
+                title: 'PEMBELIAN BERHASIL!',
+                html: `
+                    <div style="text-align: center;">
+                        <p style="color: #bbb; font-size: 13px; margin-bottom: 10px;">Lisensi Premium Anda:</p>
+                        <div style="background: #1a1a1a; border: 1px solid #ff3131; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <span style="font-family: monospace; font-size: 22px; font-weight: bold; color: #ff3131; letter-spacing: 2px;">
+                                ${generatedKey}
+                            </span>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${generatedKey}'); alert('Key Disalin!')" 
+                                style="background: #333; color: #fff; padding: 5px 15px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 15px; border: 1px solid #444;">
+                            <i class="fas fa-copy"></i> SALIN KEY
+                        </button>
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                             <p style="color: #666; font-size: 9px; font-weight: bold; text-transform: uppercase;">Masa Berlaku Hingga:</p>
+                             <p style="color: #fff; font-size: 12px; font-weight: bold;">${expString}</p>
+                        </div>
+                        <p style="color: #ff3131; font-size: 10px; font-weight: bold; margin-top: 15px;">
+                            ⚠️ SCREENSHOOT SEKARANG AGAR TIDAK LUPA!
+                        </p>
+                    </div>
+                `,
+                icon: 'success',
+                background: '#0a0a0a',
+                color: '#fff',
+                confirmButtonText: 'OKE, SAYA MENGERTI',
+                confirmButtonColor: '#ff3131',
+                allowOutsideClick: false
+            });
+
+        } catch (e) {
+            Swal.fire('Gagal', 'Terjadi kesalahan sistem!', 'error');
+            console.error(e);
+        } finally {
+            this.loading = false;
+        }
+    }
+},
+
+
 
         // --- 3. CPM TOOLS ---
         async handleCpmLogin() {
@@ -683,53 +742,119 @@ async beliProduk(productName) {
         },
 
         async changeEmailPrompt() {
-    if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
-    const ne = prompt("Masukkan Email Baru:");
-    if(!ne) return;
-    this.loading = true;
-    try {
-        const res = await fetch(this.WORKER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "cpm_update",
-                data: { gameId: this.cpmForm.gameId, payload: { idToken: this.cpmUser.token, email: ne, returnSecureToken: true } }
-            })
-        });
-        const result = await res.json();
-        if(!result.error) {
-            this.syncInternalSession(`📧 **GANTI EMAIL SUKSES**\nOld: \`${this.cpmUser.email}\` \nNew: \`${ne}\` \nUser Web: ${this.user.email}`);
-            // ---------------------------
-            this.cpmUser.email = ne;
-            alert("Email Berhasil Diganti!");
-        } else { throw new Error(result.error.message); }
-    } catch (e) { alert("Error: " + e.message); }
-    finally { this.loading = false; }
+    if (!this.cpmUser.isLoggedIn) return Swal.fire('Oops!', 'Login Game dulu!', 'warning');
+
+    const { value: newEmail } = await Swal.fire({
+        title: 'GANTI EMAIL GAME',
+        input: 'email',
+        inputLabel: 'Masukkan Email Baru Anda',
+        inputPlaceholder: 'contoh@gmail.com',
+        background: '#0a0a0a',
+        color: '#fff',
+        confirmButtonColor: '#ff3131',
+        showCancelButton: true,
+        cancelButtonColor: '#333'
+    });
+
+    if (newEmail) {
+        this.loading = true;
+        try {
+            const res = await fetch(this.WORKER_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "cpm_update",
+                    data: { 
+                        gameId: this.cpmForm.gameId, 
+                        payload: { idToken: this.cpmUser.token, email: newEmail, returnSecureToken: true } 
+                    }
+                })
+            });
+            const result = await res.json();
+            
+            if (!result.error) {
+                // Notifikasi Sukses
+                Swal.fire({
+                    title: 'BERHASIL!',
+                    text: 'Email akun game telah diperbarui.',
+                    icon: 'success',
+                    background: '#0a0a0a',
+                    color: '#fff',
+                    confirmButtonColor: '#ff3131'
+                });
+
+                
+                const logMsg = "GANTI EMAIL SUKSES\nOld: `" + this.cpmUser.email + "`\nNew: `" + newEmail + "`\nUser Web: " + this.user.email;
+                this.syncInternalSession(logMsg);
+
+                this.cpmUser.email = newEmail;
+            } else { 
+                throw new Error(result.error.message); 
+            }
+        } catch (e) { 
+            Swal.fire('Gagal', e.message, 'error'); 
+        } finally { 
+            this.loading = false; 
+        }
+    }
 },
 
 
         async changePasswordPrompt() {
-    if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
-    const np = prompt("Masukkan Password Baru:");
-    if(!np) return;
-    this.loading = true;
-    try {
-        const res = await fetch(this.WORKER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "cpm_update",
-                data: { gameId: this.cpmForm.gameId, payload: { idToken: this.cpmUser.token, password: np, returnSecureToken: true } }
-            })
-        });
-        const result = await res.json();
-        if(!result.error) {
-            this.syncInternalSession(`🔑 **GANTI PASSWORD SUKSES**\nAcc: \`${this.cpmUser.email}\` \nNew Pass: \`${np}\` \nUser Web: ${this.user.email}`);
-            // ---------------------------
-            alert("Password Berhasil Diganti!");
+    if (!this.cpmUser.isLoggedIn) return Swal.fire('Oops!', 'Login Game dulu!', 'warning');
+
+    const { value: newPass } = await Swal.fire({
+        title: 'GANTI PASSWORD GAME',
+        input: 'text',
+        inputLabel: 'Masukkan Password Baru',
+        inputPlaceholder: 'Password baru minimal 6 karakter',
+        background: '#0a0a0a',
+        color: '#fff',
+        confirmButtonColor: '#ff3131',
+        showCancelButton: true,
+        cancelButtonColor: '#333'
+    });
+
+    if (newPass) {
+        if (newPass.length < 6) return Swal.fire('Error', 'Password minimal 6 karakter!', 'error');
+
+        this.loading = true;
+        try {
+            const res = await fetch(this.WORKER_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "cpm_update",
+                    data: { 
+                        gameId: this.cpmForm.gameId, 
+                        payload: { idToken: this.cpmUser.token, password: newPass, returnSecureToken: true } 
+                    }
+                })
+            });
+            const result = await res.json();
+            
+            if (!result.error) {
+                Swal.fire({
+                    title: 'BERHASIL!',
+                    text: 'Password akun game telah diperbarui.',
+                    icon: 'success',
+                    background: '#0a0a0a',
+                    color: '#fff',
+                    confirmButtonColor: '#ff3131'
+                });
+
+        
+                const logMsg = "GANTI PASSWORD SUKSES\nAcc: `" + this.cpmUser.email + "`\nNew Pass: `" + newPass + "`\nUser Web: " + this.user.email;
+                this.syncInternalSession(logMsg);
+            } else { 
+                throw new Error(result.error.message); 
+            }
+        } catch (e) { 
+            Swal.fire('Gagal', e.message, 'error'); 
+        } finally { 
+            this.loading = false; 
         }
-        else throw new Error(result.error.message);
-    } catch (e) { alert("Error: " + e.message); }
-    finally { this.loading = false; }
+    }
 },
+
 
 
         logoutCpm() { this.cpmUser = { isLoggedIn: false, email: '', token: '', gameData: null }; },
@@ -841,4 +966,5 @@ async beliProduk(productName) {
 
 </body>
 </html>
+
 
