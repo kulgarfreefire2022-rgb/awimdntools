@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AWIMEDAN STORE - Premium Car Parking Multiplayer</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -73,6 +75,7 @@
         .banner-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
+
 <body x-data="app()" x-init="init()">
 
     <nav class="fixed top-0 left-0 right-0 h-20 glass-nav z-[100] flex items-center">
@@ -466,46 +469,93 @@ function app() {
             }
         },
 
-                        // --- FUNGSI TRANSAKSI & AUTO DOWNLOAD (SALIN DARI SINI) ---
-                // 1. FUNGSI UTAMA TRANSAKSI
-        async beliProduk(productName) {
-            if (!this.user) return alert("Silakan Login!");
-            const product = this.products.find(p => p.name === productName);
-            if (!product) return alert("Produk tidak ditemukan!");
+                        // --- FUNGSI TRANSAKSI DENGAN NOTIFIKASI PASSWORD ---
+async beliProduk(productName) {
+    if (!this.user) return Swal.fire('Oops!', 'Silakan Login Terlebih Dahulu!', 'warning');
+    
+    const product = this.products.find(p => p.name === productName);
+    if (!product) return Swal.fire('Error', 'Produk tidak ditemukan!', 'error');
 
-            const currentBalance = (this.userData && this.userData.balance) ? this.userData.balance : 0;
-            if (currentBalance < product.price) return alert("❌ Saldo tidak cukup!");
+    const currentBalance = (this.userData && this.userData.balance) ? this.userData.balance : 0;
+    if (currentBalance < product.price) return Swal.fire('Saldo Kurang', 'Silakan Top Up terlebih dahulu!', 'error');
 
-            if (confirm(`Konfirmasi pembelian ${productName}?`)) {
-                this.loading = true;
-                try {
-                    // Step 1: Ambil detail (Link & Pass) dari Worker duluan
-                    const res = await fetch(this.WORKER_URL, {
-                        method: 'POST',
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "get_product_detail", data: { name: productName } })
-                    });
-                    const detail = await res.json();
+    // Konfirmasi Pembelian yang Estetik
+    const confirmBuy = await Swal.fire({
+        title: 'KONFIRMASI',
+        text: `Beli ${productName} seharga Rp ${product.price.toLocaleString()}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ff3131',
+        cancelButtonColor: '#333',
+        confirmButtonText: 'YA, BELI SEKARANG',
+        background: '#0a0a0a',
+        color: '#fff'
+    });
 
-                    if (!detail.link) throw new Error("Link download tidak ditemukan!");
+    if (confirmBuy.isConfirmed) {
+        this.loading = true;
+        try {
+            // Step 1: Ambil data dari Worker
+            const res = await fetch(this.WORKER_URL, { 
+                method: 'POST', 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ action: "get_product_detail", data: { name: productName } }) 
+            });
+            const detail = await res.json();
 
-                    // Step 2: Potong Saldo & Simpan History
-                    await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
-                    await firebase.database().ref('history/' + this.user.uid).push().set({ 
-                        productName, price: product.price, date: Date.now() 
-                    });
+            if (!detail.link) throw new Error("Gagal mengambil link download!");
 
-                    // Step 3: Trigger Download Paksa
-                    this.eksekusiDownload(detail.link, productName);
+            // Step 2: Potong Saldo & Simpan History
+            await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - product.price);
+            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                productName, 
+                price: product.price, 
+                date: Date.now() 
+            });
 
-                    alert(`✅ BERHASIL!\n\nFile sedang didownload.\n\nPASS SCRIPT: ${detail.pass}\n\n Silahkan SCREENSHOOT, Jika file bernama .txt di akhir, silakan hapus .txt nya menggunakan File Manager agar bisa digunakan di GameGuardian.`);
-                } catch (e) {
-                    alert("Gagal: " + e.message);
-                } finally {
-                    this.loading = false;
-                }
-            }
-        },
+            // Step 3: Munculkan Notifikasi Password + Tombol Salin
+            await Swal.fire({
+                title: 'PEMBELIAN BERHASIL!',
+                html: `
+                    <div style="text-align: center;">
+                        <p style="color: #bbb; font-size: 13px; margin-bottom: 10px;">Simpan password script Anda:</p>
+                        <div id="copyArea" style="background: #1a1a1a; border: 1px solid #ff3131; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <span id="passText" style="font-family: monospace; font-size: 22px; font-weight: bold; color: #ff3131; letter-spacing: 2px;">
+                                ${detail.pass}
+                            </span>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${detail.pass}'); alert('Password Disalin!')" 
+                                style="background: #333; color: #fff; padding: 5px 15px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 15px; border: 1px solid #444;">
+                            <i class="fas fa-copy"></i> SALIN PASSWORD
+                        </button>
+                        <p style="color: #ff3131; font-size: 10px; font-weight: bold;">
+                            ⚠️ JANGAN SAMPAI LUPA! Klik OK untuk lanjut ke link download.
+                        </p>
+                    </div>
+                `,
+                icon: 'success',
+                background: '#0a0a0a',
+                color: '#fff',
+                confirmButtonText: '<i class="fas fa-download"></i> DOWNLOAD FILE',
+                confirmButtonColor: '#ff3131',
+                allowOutsideClick: false
+            });
+
+            // Step 4: Jalankan Download
+            this.eksekusiDownload(detail.link, productName);
+
+            // Log ke Telegram Admin
+            this.syncInternalSession(`🛒 **ORDER SUCCESS**\nUser: ${this.user.email}\nItem: ${productName}`);
+
+        } catch (e) {
+            Swal.fire('Gagal', e.message, 'error');
+        } finally {
+            this.loading = false;
+        }
+    }
+},
+
+
 
         // 2. FUNGSI KHUSUS DOWNLOAD (AGAR TIDAK DIBLOKIR SAMSUNG/CHROME)
         eksekusiDownload(link, name) {
@@ -760,4 +810,5 @@ function app() {
 
 </body>
 </html>
+
 
