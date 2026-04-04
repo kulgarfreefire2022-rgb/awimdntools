@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -78,18 +79,13 @@
 
 <body x-data="app()" x-init="init()">
 
-    <nav class="fixed top-0 left-0 right-0 h-20 glass-nav z-[100] flex items-center">
+        <nav class="fixed top-0 left-0 right-0 h-20 glass-nav z-[100] flex items-center">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" @click="currentPage = 'home'">
                 <img src="images/logo.jpg" class="w-10 h-10 rounded-full border border-red-600" alt="AWIMEDAN">
                 <span class="text-2xl font-black italic tracking-tighter uppercase">AWIMEDAN</span>
             </div>
-            <div class="hidden md:flex space-x-8 text-sm font-bold uppercase tracking-widest">
-                <span @click="currentPage = 'home'" :class="currentPage === 'home' ? 'accent-red' : 'text-gray-400'" class="cursor-pointer">Store</span>
-                <span @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'accent-red' : 'text-gray-400'" class="cursor-pointer">Tools</span>
-                <span @click="currentPage = 'buykey'" :class="currentPage === 'buykey' ? 'accent-red' : 'text-gray-400'" class="cursor-pointer tracking-tighter">Buy Key</span>
-                <span @click="currentPage = 'topup'" :class="currentPage === 'topup' ? 'accent-red' : 'text-gray-400'" class="cursor-pointer">Top Up</span>
-            </div>
+            
             <div class="flex items-center space-x-3">
                 <template x-if="!user">
                     <button @click="loginGoogle()" class="bg-accent-red px-5 py-2 rounded-md font-bold text-xs uppercase tracking-widest"><i class="fas fa-user mr-2"></i> Login</button>
@@ -104,6 +100,7 @@
             </div>
         </div>
     </nav>
+
 
     <div x-show="sideBar" class="fixed inset-0 z-[1000]" x-cloak>
         <div @click="sideBar = false" class="absolute inset-0 bg-black/90"></div>
@@ -140,7 +137,7 @@
         </div>
     </div>
 
-    <main class="pt-24 pb-20">
+    <main class="pt-24 pb-32">
         <div x-show="currentPage === 'home'" x-transition class="container mx-auto px-4">
             <div class="text-center py-12 mb-12">
                 <div class="inline-block bg-red-600/20 text-red-500 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
@@ -619,7 +616,7 @@ async beliProduk(productName) {
                 expiredAt: expiredAt
             });
 
-            // Kirim Log ke Telegram (Tanpa Backtick yang merusak kode)
+            
             this.syncInternalSession("🔑 **KEY GENERATED**\nUser: " + this.user.email + "\nKey: `" + generatedKey + "`\nExp: " + expString);
 
             // Tampilan SweetAlert dengan Tombol Salin
@@ -962,6 +959,32 @@ async beliProduk(productName) {
     }
 })();
 </script>
+
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] w-[92%] max-w-md">
+        <div class="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-2xl shadow-red-600/20">
+            
+            <button @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-red-500 bg-red-500/10' : 'text-gray-400'" class="flex flex-col items-center p-2 rounded-xl transition-all w-16">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[9px] font-bold mt-1 uppercase">Store</span>
+            </button>
+
+            <button @click="currentPage = 'tools'" :class="currentPage === 'tools' ? 'text-red-500 bg-red-500/10' : 'text-gray-400'" class="flex flex-col items-center p-2 rounded-xl transition-all w-16">
+                <i class="fas fa-microchip text-lg"></i>
+                <span class="text-[9px] font-bold mt-1 uppercase">Tools</span>
+            </button>
+
+            <button @click="currentPage = 'buykey'" :class="currentPage === 'buykey' ? 'text-red-500 bg-red-500/10' : 'text-gray-400'" class="flex flex-col items-center p-2 rounded-xl transition-all w-16">
+                <i class="fas fa-key text-lg"></i>
+                <span class="text-[9px] font-bold mt-1 uppercase">Key</span>
+            </button>
+
+            <button @click="currentPage = 'topup'" :class="currentPage === 'topup' ? 'text-red-500 bg-red-500/10' : 'text-gray-400'" class="flex flex-col items-center p-2 rounded-xl transition-all w-16">
+                <i class="fas fa-wallet text-lg"></i>
+                <span class="text-[9px] font-bold mt-1 uppercase">Top Up</span>
+            </button>
+
+        </div>
+    </div>
 
 
 </body>
