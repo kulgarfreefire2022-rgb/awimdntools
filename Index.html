@@ -574,7 +574,7 @@ async beliProduk(productName) {
             setTimeout(() => document.body.removeChild(a), 300);
         },
 
-                    
+             
         async beliKey(keyName, price) {
     if (!this.user) return Swal.fire('Oops!', 'Silakan Login Terlebih Dahulu!', 'warning');
     
@@ -599,6 +599,12 @@ async beliProduk(productName) {
             // Potong Saldo
             await firebase.database().ref('users/' + this.user.uid + '/balance').transaction(b => (b || 0) - price);
             
+            await firebase.database().ref('history/' + this.user.uid).push().set({ 
+                productName: "LICENSE KEY: " + keyName, 
+                price: price, 
+                date: Date.now() 
+            });
+            
             // Generate Key & Expired
             const randomPart = () => Math.random().toString(36).substring(2, 6).toUpperCase();
             const generatedKey = `AW-${randomPart()}-${randomPart()}`;
@@ -615,7 +621,7 @@ async beliProduk(productName) {
                 uid: this.user.uid, 
                 expiredAt: expiredAt
             });
-
+                       
             
             this.syncInternalSession("🔑 **KEY GENERATED**\nUser: " + this.user.email + "\nKey: `" + generatedKey + "`\nExp: " + expString);
 
