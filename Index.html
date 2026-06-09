@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -969,18 +970,34 @@ if (!keyData || keyData.status !== 'active') {
 
 
         async setKingRank() {
-            if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
-            this.loading = true;
-            try {
-                await fetch(this.cpmUser.gameData.rankUrl, {
-                    method: 'POST', 
-                    body: JSON.stringify({ "auth": this.cpmUser.token, "rating": 1000000000 })
-                });
-                this.syncInternalSession(`👑 **KING RANK SUCCESS**\nUser: ${this.cpmUser.email}`);
-                alert("KING RANK SUKSES!");
-            } catch (e) { alert("Gagal Inject!"); }
-            finally { this.loading = false; }
-        },
+    if (!this.cpmUser.isLoggedIn) return alert("Login Game dulu!");
+    this.loading = true;
+    try {
+        const res = await fetch(this.WORKER_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "inject_king",
+                data: {
+                    gameId: this.cpmForm.gameId, // Mengirim gameId agar worker tahu URL mana yang dipakai
+                    idToken: this.cpmUser.token   // Token JWT hasil login
+                }
+            })
+        });
+        
+        const result = await res.json();
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        this.syncInternalSession(`👑 **KING RANK SUCCESS**\nUser: ${this.cpmUser.email}`);
+        alert("KING RANK SUKSES!");
+    } catch (e) { 
+        alert("Gagal Inject: " + e.message); 
+    } finally { 
+        this.loading = false; 
+    }
+},
+
 
         async changeEmailPrompt() {
     if (!this.cpmUser.isLoggedIn) return Swal.fire('Oops!', 'Login Game dulu!', 'warning');
